@@ -10,6 +10,7 @@ import 'package:khatooniiii/screens/driver_list.dart';
 import 'package:khatooniiii/screens/cargo_list.dart';
 import 'package:khatooniiii/screens/payment_list.dart';
 import 'package:khatooniiii/screens/expense_list.dart';
+import 'package:khatooniiii/screens/customer_list.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:khatooniiii/models/driver.dart';
 import 'package:khatooniiii/models/cargo.dart';
@@ -22,66 +23,80 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('سامانه خاتون بار'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              const Center(
-                child: Icon(
-                  Icons.local_shipping,
-                  size: 64,
-                  color: Colors.blue,
-                ),
-              ),
-              const SizedBox(height: 16),
-              // Center(
-              //   child: Text(
-              //     'داشبورد سامانه خاتونی',
-              //     style: Theme.of(context).textTheme.headlineSmall,
-              //     textAlign: TextAlign.center,
-              //   ),
-              // ),
-              // const SizedBox(height: 24),
-              
-              // Stats section
-              //_buildStatsSection(context),
-              //const SizedBox(height: 32),
-              
-              // Records and Lists section
-              // const Padding(
-              //   padding: EdgeInsets.only(bottom: 16.0),
-              //   child: Text(
-              //     'گزارش‌ها و لیست‌ها',
-              //     style: TextStyle(
-              //       fontSize: 20,
-              //       fontWeight: FontWeight.bold,
-              //     ),
-              //   ),
-              // ),
-             // _buildRecordsGrid(context),
-             // const SizedBox(height: 32),
-              
-              // Create New section
-              // const Padding(
-              //   padding: EdgeInsets.only(bottom: 16.0),
-              //   child: Text(
-              //     'ثبت اطلاعات جدید',
-              //     style: TextStyle(
-              //       fontSize: 20,
-              //       fontWeight: FontWeight.bold,
-              //     ),
-              //   ),
-              // ),
-              _buildCreateNewGrid(context),
+      // appBar: AppBar(
+      //   //title: const Text('سامانه خاتون بار', style: TextStyle(fontWeight: FontWeight.bold)),
+      //   backgroundColor: Theme.of(context).colorScheme.primary,
+      //   foregroundColor: Theme.of(context).colorScheme.onPrimary,
+      //   elevation: 0,
+      // ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              Colors.white,
             ],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 24.0),
+                  child: Column(
+                    children: [
+                      const Center(
+                        child: Icon(
+                          Icons.local_shipping,
+                          size: 80,
+                          color: Colors.blue,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'سامانه خاتون بار',
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(height: 16),
+                
+                // Stats section
+                _buildStatsSection(context),
+                const SizedBox(height: 24),
+                
+                // Sections divider
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8.0),
+                  child: Divider(thickness: 1.5),
+                ),
+                
+                // Create New section
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16.0),
+                  child: Text(
+                    'مدیریت سیستم',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                _buildCreateNewGrid(context),
+              ],
+            ),
           ),
         ),
       ),
@@ -89,135 +104,112 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildStatsSection(BuildContext context) {
-    return ValueListenableBuilder(
-      valueListenable: Hive.box<Cargo>('cargos').listenable(),
-      builder: (context, cargoBox, child) {
-        return Column(
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: _buildStatCard(
-                    context,
-                    'رانندگان',
-                    Hive.box<Driver>('drivers').length.toString(),
-                    Icons.person,
-                    Colors.blue,
-                    () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const DriverList()),
-                      );
-                    },
-                  ),
+            const Padding(
+              padding: EdgeInsets.only(bottom: 16.0),
+              child: Text(
+                'خلاصه وضعیت',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildStatCard(
-                    context,
-                    'محموله‌ها',
-                    cargoBox.length.toString(),
-                    Icons.inventory,
-                    Colors.orange,
-                    () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const CargoList()),
-                      );
-                    },
-                  ),
-                ),
-              ],
+              ),
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildStatCard(
-                    context,
-                    'پرداخت‌ها',
-                    Hive.box<Payment>('payments').length.toString(),
-                    Icons.payment,
-                    Colors.green,
-                    () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const PaymentList()),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildStatCard(
-                    context,
-                    'هزینه‌ها',
-                    Hive.box<Expense>('expenses').length.toString(),
-                    Icons.money_off,
-                    Colors.red,
-                    () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const ExpenseList()),
-                      );
-                    },
-                  ),
-                ),
-              ],
+            ValueListenableBuilder(
+              valueListenable: Hive.box<Cargo>('cargos').listenable(),
+              builder: (context, cargoBox, child) {
+                return Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildStatCard(
+                            context,
+                            'رانندگان',
+                            Hive.box<Driver>('drivers').length.toString(),
+                            Icons.person,
+                            Colors.blue,
+                            () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const DriverList()),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildStatCard(
+                            context,
+                            'سرویس‌ها',
+                            cargoBox.length.toString(),
+                            Icons.inventory,
+                            Colors.orange,
+                            () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const CargoList()),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildStatCard(
+                            context,
+                            'پرداخت‌ها',
+                            Hive.box<Payment>('payments').length.toString(),
+                            Icons.payment,
+                            Colors.green,
+                            () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const PaymentList()),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildStatCard(
+                            context,
+                            'هزینه‌ها',
+                            Hive.box<Expense>('expenses').length.toString(),
+                            Icons.money_off,
+                            Colors.red,
+                            () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const ExpenseList()),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              },
             ),
           ],
-        );
-      },
+        ),
+      ),
     );
   }
 
-  // Widget _buildRecordsGrid(BuildContext context) {
-  //   final menuItems = [
-  //     _MenuItem('لیست رانندگان', Icons.people, () {
-  //       Navigator.push(
-  //         context,
-  //         MaterialPageRoute(builder: (context) => const DriverList()),
-  //       );
-  //     }),
-  //     _MenuItem('لیست محموله‌ها', Icons.inventory_2, () {
-  //       Navigator.push(
-  //         context,
-  //         MaterialPageRoute(builder: (context) => const CargoList()),
-  //       );
-  //     }),
-  //     _MenuItem('لیست پرداخت‌ها', Icons.receipt_long, () {
-  //       Navigator.push(
-  //         context,
-  //         MaterialPageRoute(builder: (context) => const PaymentList()),
-  //       );
-  //     }),
-  //     _MenuItem('لیست هزینه‌ها', Icons.money_off, () {
-  //       Navigator.push(
-  //         context,
-  //         MaterialPageRoute(builder: (context) => const ExpenseList()),
-  //       );
-  //     }),
-  //   ];
-
-  //   return GridView.builder(
-  //     shrinkWrap: true,
-  //     physics: const NeverScrollableScrollPhysics(),
-  //     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-  //       crossAxisCount: 2,
-  //       crossAxisSpacing: 16,
-  //       mainAxisSpacing: 16,
-  //       childAspectRatio: 1.5,
-  //     ),
-  //     itemCount: menuItems.length,
-  //     itemBuilder: (context, index) {
-  //       final item = menuItems[index];
-  //       return _buildMenuCard(context, item);
-  //     },
-  //   );
-  // }
-
   Widget _buildCreateNewGrid(BuildContext context) {
-    final menuItems = [
+    final registrationItems = [
       _MenuItem('ثبت راننده', Icons.person_add, () {
         Navigator.push(
           context,
@@ -230,19 +222,19 @@ class HomeScreen extends StatelessWidget {
           MaterialPageRoute(builder: (context) => const VehicleForm()),
         );
       }),
-      _MenuItem('ثبت نوع محموله', Icons.category, () {
+      _MenuItem('ثبت نوع سرویس بار', Icons.category, () {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const CargoTypeForm()),
         );
       }),
-      _MenuItem('ثبت مشتری', Icons.people, () {
+      _MenuItem('ثبت مشتری', Icons.person_add_alt_1, () {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const CustomerForm()),
         );
       }),
-      _MenuItem('ثبت محموله', Icons.local_shipping, () {
+      _MenuItem('ثبت سرویس بار', Icons.local_shipping, () {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const CargoForm()),
@@ -262,20 +254,98 @@ class HomeScreen extends StatelessWidget {
       }),
     ];
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: 1.5,
-      ),
-      itemCount: menuItems.length,
-      itemBuilder: (context, index) {
-        final item = menuItems[index];
-        return _buildMenuCard(context, item);
-      },
+    final managementItems = [
+      _MenuItem('مدیریت رانندگان', Icons.people, () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const DriverList()),
+        );
+      }),
+      _MenuItem('مدیریت مشتریان', Icons.people_outline, () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const CustomerList()),
+        );
+      }),
+      _MenuItem('مدیریت سرویس‌ها', Icons.inventory, () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const CargoList()),
+        );
+      }),
+      _MenuItem('مدیریت پرداخت‌ها', Icons.receipt, () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const PaymentList()),
+        );
+      }),
+      _MenuItem('مدیریت هزینه‌ها', Icons.money_off_csred, () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ExpenseList()),
+        );
+      }),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Registration section
+        const Padding(
+          padding: EdgeInsets.only(bottom: 12.0),
+          child: Text(
+            'ثبت اطلاعات جدید',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 0.9,
+          ),
+          itemCount: registrationItems.length,
+          itemBuilder: (context, index) {
+            final item = registrationItems[index];
+            return _buildMenuCard(context, item, Colors.blue.shade50);
+          },
+        ),
+        
+        const SizedBox(height: 24),
+        
+        // Management section
+        const Padding(
+          padding: EdgeInsets.only(bottom: 12.0),
+          child: Text(
+            'مدیریت اطلاعات',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 0.9,
+          ),
+          itemCount: managementItems.length,
+          itemBuilder: (context, index) {
+            final item = managementItems[index];
+            return _buildMenuCard(context, item, Colors.green.shade50);
+          },
+        ),
+      ],
     );
   }
   
@@ -289,8 +359,10 @@ class HomeScreen extends StatelessWidget {
   ) {
     return Card(
       elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -314,6 +386,7 @@ class HomeScreen extends StatelessWidget {
                 style: TextStyle(
                   color: Colors.grey[700],
                 ),
+                textAlign: TextAlign.center,
               ),
             ],
           ),
@@ -322,26 +395,46 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuCard(BuildContext context, _MenuItem item) {
+  Widget _buildMenuCard(BuildContext context, _MenuItem item, Color backgroundColor) {
     return Card(
       elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: backgroundColor,
       child: InkWell(
         onTap: item.onTap,
+        borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(8.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                item.icon,
-                color: Theme.of(context).colorScheme.primary,
-                size: 32,
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.2),
+                      spreadRadius: 1,
+                      blurRadius: 3,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  item.icon,
+                  color: Theme.of(context).colorScheme.primary,
+                  size: 28,
+                ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Text(
                 item.title,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                 textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),

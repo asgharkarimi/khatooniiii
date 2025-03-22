@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:khatooniiii/models/payment.dart';
 import 'package:khatooniiii/models/cargo.dart';
 import 'package:khatooniiii/models/customer.dart';
+import 'package:khatooniiii/utils/number_formatter.dart';
 import 'package:intl/intl.dart';
 
 class PaymentForm extends StatefulWidget {
   final Payment? payment;
+  final Cargo? cargo;
 
-  const PaymentForm({super.key, this.payment});
+  const PaymentForm({super.key, this.payment, this.cargo});
 
   @override
   State<PaymentForm> createState() => _PaymentFormState();
@@ -39,6 +42,8 @@ class _PaymentFormState extends State<PaymentForm> {
       _selectedDate = widget.payment!.paymentDate;
       _checkDueDate = widget.payment!.checkDueDate;
       _amountController.text = widget.payment!.amount.toString();
+    } else if (widget.cargo != null) {
+      _selectedCargo = widget.cargo;
     }
   }
 
@@ -78,7 +83,7 @@ class _PaymentFormState extends State<PaymentForm> {
         final paymentsBox = Hive.box<Payment>('payments');
 
         // Check if the payment amount is valid
-        final amount = double.parse(_amountController.text);
+        final amount = parseFormattedNumber(_amountController.text);
         
         // Update cargo payment status if needed
         final totalPrice = _selectedCargo!.totalPrice;
@@ -238,12 +243,12 @@ class _PaymentFormState extends State<PaymentForm> {
                     border: OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    ThousandsFormatter(separator: '.'),
+                  ],
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'لطفاً مبلغ را وارد کنید';
-                    }
-                    if (double.tryParse(value) == null) {
-                      return 'لطفاً یک عدد معتبر وارد کنید';
                     }
                     return null;
                   },
@@ -274,13 +279,13 @@ class _PaymentFormState extends State<PaymentForm> {
     final cargos = box.values.toList();
 
     if (cargos.isEmpty) {
-      return const Text('محموله ای یافت نشد. لطفاً ابتدا یک محموله ایجاد کنید.',
+      return const Text('سرویس باری یافت نشد. لطفاً ابتدا یک سرویس بار ایجاد کنید.',
           style: TextStyle(color: Colors.red));
     }
 
     return DropdownButtonFormField<Cargo>(
       decoration: const InputDecoration(
-        labelText: 'محموله',
+        labelText: 'سرویس بار',
         border: OutlineInputBorder(),
       ),
       value: _selectedCargo,

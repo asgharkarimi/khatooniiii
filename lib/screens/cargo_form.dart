@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:khatooniiii/models/cargo.dart';
 import 'package:khatooniiii/models/cargo_type.dart';
 import 'package:khatooniiii/models/driver.dart';
 import 'package:khatooniiii/models/vehicle.dart';
 import 'package:intl/intl.dart';
+import 'package:khatooniiii/utils/number_formatter.dart';
 
 class CargoForm extends StatefulWidget {
   final Cargo? cargo;
@@ -83,8 +85,8 @@ class _CargoFormState extends State<CargoForm> {
           origin: _originController.text.trim(),
           destination: _destinationController.text.trim(),
           date: _selectedDate,
-          weight: double.parse(_weightController.text),
-          pricePerTon: double.parse(_pricePerTonController.text),
+          weight: parseFormattedNumber(_weightController.text),
+          pricePerTon: parseFormattedNumber(_pricePerTonController.text),
           paymentStatus: PaymentStatus.pending,
         );
 
@@ -92,13 +94,13 @@ class _CargoFormState extends State<CargoForm> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Cargo record added successfully')),
+            const SnackBar(content: Text('سرویس بار با موفقیت اضافه شد')),
           );
           Navigator.pop(context);
         }
       } catch (e) {
         setState(() {
-          _errorMessage = 'Error saving cargo record: ${e.toString()}';
+          _errorMessage = 'خطا در ذخیره سرویس بار: ${e.toString()}';
           _isLoading = false;
         });
       }
@@ -109,11 +111,11 @@ class _CargoFormState extends State<CargoForm> {
     String errorMsg = '';
     
     if (_selectedVehicle == null) {
-      errorMsg = 'Please select a vehicle';
+      errorMsg = 'لطفاً وسیله نقلیه را انتخاب کنید';
     } else if (_selectedDriver == null) {
-      errorMsg = 'Please select a driver';
+      errorMsg = 'لطفاً راننده را انتخاب کنید';
     } else if (_selectedCargoType == null) {
-      errorMsg = 'Please select a cargo type';
+      errorMsg = 'لطفاً نوع سرویس بار را انتخاب کنید';
     }
     
     if (errorMsg.isNotEmpty) {
@@ -130,7 +132,7 @@ class _CargoFormState extends State<CargoForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.cargo == null ? 'ثبت محموله جدید' : 'ویرایش محموله'),
+        title: Text(widget.cargo == null ? 'ثبت سرویس بار جدید' : 'ویرایش سرویس بار'),
         backgroundColor: Colors.blue[800],
         foregroundColor: Colors.white,
         elevation: 4,
@@ -209,7 +211,7 @@ class _CargoFormState extends State<CargoForm> {
                             const SizedBox(height: 16),
                             DropdownButtonFormField<CargoType>(
                               decoration: InputDecoration(
-                                labelText: 'نوع محموله',
+                                labelText: 'نوع سرویس بار',
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
@@ -228,7 +230,7 @@ class _CargoFormState extends State<CargoForm> {
                               },
                               validator: (value) {
                                 if (value == null) {
-                                  return 'لطفاً نوع محموله را انتخاب کنید';
+                                  return 'لطفاً نوع سرویس بار را انتخاب کنید';
                                 }
                                 return null;
                               },
@@ -287,18 +289,18 @@ class _CargoFormState extends State<CargoForm> {
                             TextFormField(
                               controller: _weightController,
                               decoration: InputDecoration(
-                                labelText: 'وزن (تن)',
+                                labelText: 'وزن (کیلوگرم)',
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
-                              keyboardType: TextInputType.number,
+                              keyboardType: const TextInputType.numberWithOptions(decimal: false),
+                              inputFormatters: [
+                                ThousandsFormatter(separator: '.'),
+                              ],
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'لطفاً وزن را وارد کنید';
-                                }
-                                if (double.tryParse(value) == null) {
-                                  return 'لطفاً یک عدد معتبر وارد کنید';
                                 }
                                 return null;
                               },
@@ -312,13 +314,13 @@ class _CargoFormState extends State<CargoForm> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
-                              keyboardType: TextInputType.number,
+                              keyboardType: const TextInputType.numberWithOptions(decimal: false),
+                              inputFormatters: [
+                                ThousandsFormatter(separator: '.'),
+                              ],
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'لطفاً قیمت هر تن را وارد کنید';
-                                }
-                                if (double.tryParse(value) == null) {
-                                  return 'لطفاً یک عدد معتبر وارد کنید';
                                 }
                                 return null;
                               },
@@ -342,7 +344,7 @@ class _CargoFormState extends State<CargoForm> {
                           elevation: 2,
                         ),
                         child: Text(
-                          widget.cargo == null ? 'ثبت محموله' : 'ذخیره تغییرات',
+                          widget.cargo == null ? 'ثبت سرویس بار' : 'ذخیره تغییرات',
                           style: const TextStyle(fontSize: 16),
                         ),
                       ),
@@ -441,14 +443,14 @@ class _CargoFormState extends State<CargoForm> {
             color: Colors.amber,
             child: Padding(
               padding: EdgeInsets.all(16.0),
-              child: Text('No cargo types found. Please add a cargo type first.'),
+              child: Text('نوع سرویس باری یافت نشد. لطفاً ابتدا یک نوع سرویس بار ایجاد کنید.'),
             ),
           );
         }
         
         return DropdownButtonFormField<CargoType>(
           decoration: const InputDecoration(
-            labelText: 'Select Cargo Type',
+            labelText: 'انتخاب نوع سرویس بار',
             border: OutlineInputBorder(),
           ),
           value: _selectedCargoType,

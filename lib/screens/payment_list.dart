@@ -14,17 +14,6 @@ class PaymentList extends StatelessWidget {
         title: const Text('پرداخت‌ها'),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Theme.of(context).colorScheme.onPrimary,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const PaymentForm()),
-              );
-            },
-          ),
-        ],
       ),
       body: ValueListenableBuilder(
         valueListenable: Hive.box<Payment>('payments').listenable(),
@@ -146,14 +135,16 @@ class PaymentList extends StatelessWidget {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const PaymentForm()),
           );
         },
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.add),
+        label: const Text('افزودن پرداخت'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
     );
   }

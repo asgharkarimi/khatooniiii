@@ -15,17 +15,6 @@ class ExpenseList extends StatelessWidget {
         title: const Text('هزینه‌ها'),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Theme.of(context).colorScheme.onPrimary,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ExpenseForm()),
-              );
-            },
-          ),
-        ],
       ),
       body: ValueListenableBuilder(
         valueListenable: Hive.box<Expense>('expenses').listenable(),
@@ -141,14 +130,16 @@ class ExpenseList extends StatelessWidget {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const ExpenseForm()),
           );
         },
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.add),
+        label: const Text('افزودن هزینه'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
     );
   }

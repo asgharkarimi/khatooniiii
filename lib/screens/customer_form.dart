@@ -24,7 +24,7 @@ class _CustomerFormState extends State<CustomerForm> {
     if (widget.customer != null) {
       _firstNameController.text = widget.customer!.firstName;
       _lastNameController.text = widget.customer!.lastName;
-      _phoneController.text = widget.customer!.phoneNumber;
+      _phoneController.text = widget.customer!.phone;
     }
   }
 
@@ -114,14 +114,19 @@ class _CustomerFormState extends State<CustomerForm> {
       try {
         final customersBox = Hive.box<Customer>('customers');
         final customer = Customer(
-          id: widget.customer?.id ?? Uuid().v4(),
           firstName: _firstNameController.text,
           lastName: _lastNameController.text,
-          phoneNumber: _phoneController.text,
+          phone: _phoneController.text,
         );
 
         if (widget.customer != null) {
-          await customersBox.put(widget.customer!.key, customer);
+          final key = customersBox.keys.firstWhere(
+            (k) => customersBox.get(k) == widget.customer,
+            orElse: () => null,
+          );
+          if (key != null) {
+            await customersBox.put(key, customer);
+          }
         } else {
           await customersBox.add(customer);
         }

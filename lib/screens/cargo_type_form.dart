@@ -27,7 +27,7 @@ class _CargoTypeFormState extends State<CargoTypeForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.cargoType == null ? 'ثبت نوع محموله جدید' : 'ویرایش نوع محموله'),
+        title: Text(widget.cargoType == null ? 'ثبت نوع سرویس بار جدید' : 'ویرایش نوع سرویس بار'),
         backgroundColor: Colors.blue[800],
         foregroundColor: Colors.white,
       ),
@@ -40,12 +40,12 @@ class _CargoTypeFormState extends State<CargoTypeForm> {
               TextFormField(
                 controller: _cargoNameController,
                 decoration: const InputDecoration(
-                  labelText: 'نام نوع محموله',
+                  labelText: 'نام نوع سرویس بار',
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'لطفاً نام نوع محموله را وارد کنید';
+                    return 'لطفاً نام نوع سرویس بار را وارد کنید';
                   }
                   return null;
                 },
@@ -59,7 +59,7 @@ class _CargoTypeFormState extends State<CargoTypeForm> {
                   minimumSize: const Size(double.infinity, 50),
                 ),
                 child: Text(
-                  widget.cargoType == null ? 'ثبت نوع محموله' : 'ذخیره تغییرات',
+                  widget.cargoType == null ? 'ثبت نوع سرویس بار' : 'ذخیره تغییرات',
                   style: const TextStyle(fontSize: 16),
                 ),
               ),
@@ -90,7 +90,7 @@ class _CargoTypeFormState extends State<CargoTypeForm> {
         }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('خطا در ذخیره نوع محموله: ${e.toString()}')),
+          SnackBar(content: Text('خطا در ذخیره نوع سرویس بار: ${e.toString()}')),
         );
       }
     }

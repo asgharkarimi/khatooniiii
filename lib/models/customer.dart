@@ -2,28 +2,24 @@ import 'package:hive/hive.dart';
 
 part 'customer.g.dart';
 
-@HiveType(typeId: 3)
-class Customer extends HiveObject {
+@HiveType(typeId: 4)
+class Customer {
   @HiveField(0)
-  final String id;
-
-  @HiveField(1)
   final String firstName;
 
-  @HiveField(2)
+  @HiveField(1)
   final String lastName;
 
-  @HiveField(3)
-  final String phoneNumber;
+  @HiveField(2)
+  final String phone;
 
-  @HiveField(4)
+  @HiveField(3)
   final String? address;
 
   Customer({
-    required this.id,
     required this.firstName,
     required this.lastName,
-    required this.phoneNumber,
+    required this.phone,
     this.address,
   });
 } 

@@ -36,10 +36,10 @@ class Cargo extends HiveObject {
   DateTime date;
 
   @HiveField(7)
-  double weight;
+  double weight; // وزن بر حسب کیلوگرم
 
   @HiveField(8)
-  double pricePerTon;
+  double pricePerTon; // قیمت هر تن بر حسب تومان
 
   @HiveField(9)
   int paymentStatus; // Uses PaymentStatus constants
@@ -57,5 +57,9 @@ class Cargo extends HiveObject {
     this.paymentStatus = PaymentStatus.pending,
   });
 
-  double get totalPrice => weight * pricePerTon;
+  // وزن را به تن تبدیل می‌کند (هر تن = 1000 کیلوگرم)
+  double get weightInTons => weight / 1000;
+
+  // قیمت کل بر اساس وزن (تن) و قیمت هر تن (تومان)
+  double get totalPrice => weightInTons * pricePerTon;
 } 

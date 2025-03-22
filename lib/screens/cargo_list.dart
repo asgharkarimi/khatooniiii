@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:khatooniiii/models/cargo.dart';
+import 'package:khatooniiii/models/payment.dart';
 import 'package:khatooniiii/screens/cargo_form.dart';
+import 'package:khatooniiii/screens/payment_form.dart';
+import 'package:khatooniiii/utils/number_formatter.dart';
 import 'package:intl/intl.dart';
 
 class CargoList extends StatelessWidget {
@@ -11,18 +14,7 @@ class CargoList extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('لیست محموله‌ها'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const CargoForm()),
-              );
-            },
-          ),
-        ],
+        title: const Text('لیست سرویس بار'),
       ),
       body: ValueListenableBuilder(
         valueListenable: Hive.box<Cargo>('cargos').listenable(),
@@ -39,7 +31,7 @@ class CargoList extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   const Text(
-                    'محموله‌ای یافت نشد',
+                    'سرویس باری یافت نشد',
                     style: TextStyle(fontSize: 18),
                   ),
                   const SizedBox(height: 16),
@@ -51,7 +43,7 @@ class CargoList extends StatelessWidget {
                       );
                     },
                     icon: const Icon(Icons.add),
-                    label: const Text('افزودن محموله'),
+                    label: const Text('افزودن سرویس بار'),
                   ),
                 ],
               ),
@@ -81,12 +73,28 @@ class CargoList extends StatelessWidget {
                     ),
                   ),
                   title: Text('${driver.name} - ${cargo.cargoType.cargoName}'),
-                  subtitle: Text(
-                    '${cargo.origin} به ${cargo.destination} - ${DateFormat('yyyy/MM/dd').format(cargo.date)}',
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('${cargo.origin} به ${cargo.destination}'),
+                      Text('وزن: ${formatNumber(cargo.weight)} کیلوگرم (${formatNumber(cargo.weightInTons, separator: '/')} تن)'),
+                      Text('قیمت هر تن: ${formatNumber(cargo.pricePerTon)} تومان'),
+                      Text('قیمت کل: ${formatNumber(totalPrice)} تومان'),
+                    ],
                   ),
-                  trailing: Text(
-                    '${cargo.weight} تن\n${NumberFormat.currency(symbol: 'تومان').format(totalPrice)}',
-                    textAlign: TextAlign.end,
+                  trailing: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: _getPaymentStatusColor(cargo.paymentStatus).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      _getPaymentStatusText(cargo.paymentStatus),
+                      style: TextStyle(
+                        color: _getPaymentStatusColor(cargo.paymentStatus),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                   onTap: () {
                     _showCargoDetails(context, cargo);
@@ -96,6 +104,16 @@ class CargoList extends StatelessWidget {
             },
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const CargoForm()),
+          );
+        },
+        icon: const Icon(Icons.add),
+        label: const Text('افزودن سرویس بار'),
       ),
     );
   }
@@ -140,7 +158,7 @@ class CargoList extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('جزئیات محموله'),
+        title: const Text('جزئیات سرویس بار'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -148,13 +166,15 @@ class CargoList extends StatelessWidget {
             children: [
               _buildDetailRow('راننده', cargo.driver.name),
               _buildDetailRow('وسیله نقلیه', cargo.vehicle.vehicleName),
-              _buildDetailRow('نوع محموله', cargo.cargoType.cargoName),
+              _buildDetailRow('نوع سرویس بار', cargo.cargoType.cargoName),
               _buildDetailRow('مسیر', '${cargo.origin} به ${cargo.destination}'),
               _buildDetailRow('تاریخ', DateFormat('yyyy/MM/dd').format(cargo.date)),
-              _buildDetailRow('وزن', '${cargo.weight} تن'),
-              _buildDetailRow('قیمت هر تن', NumberFormat.currency(symbol: 'تومان').format(cargo.pricePerTon)),
-              _buildDetailRow('قیمت کل', NumberFormat.currency(symbol: 'تومان').format(cargo.totalPrice)),
+              _buildDetailRow('وزن', '${formatNumber(cargo.weight)} کیلوگرم (${formatNumber(cargo.weightInTons, separator: '/')} تن)'),
+              _buildDetailRow('قیمت هر تن', '${formatNumber(cargo.pricePerTon)} تومان'),
+              _buildDetailRow('قیمت کل', '${formatNumber(cargo.totalPrice)} تومان'),
               _buildDetailRow('وضعیت پرداخت', _getPaymentStatusText(cargo.paymentStatus)),
+              const Divider(height: 24),
+              _buildPaymentsList(context, cargo),
             ],
           ),
         ),
@@ -167,6 +187,13 @@ class CargoList extends StatelessWidget {
             child: const Text('ویرایش'),
           ),
           TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _addPaymentForCargo(context, cargo);
+            },
+            child: const Text('افزودن پرداخت', style: TextStyle(color: Colors.green)),
+          ),
+          TextButton(
             onPressed: () async {
               final confirmed = await _confirmDelete(context);
               if (confirmed && context.mounted) {
@@ -174,7 +201,7 @@ class CargoList extends StatelessWidget {
                 if (context.mounted) {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('محموله با موفقیت حذف شد')),
+                    const SnackBar(content: Text('سرویس بار با موفقیت حذف شد')),
                   );
                 }
               }
@@ -205,12 +232,132 @@ class CargoList extends StatelessWidget {
     );
   }
 
+  Widget _buildPaymentsList(BuildContext context, Cargo cargo) {
+    return ValueListenableBuilder(
+      valueListenable: Hive.box<Payment>('payments').listenable(),
+      builder: (context, Box<Payment> box, _) {
+        final paymentsForCargo = box.values
+            .where((payment) => 
+              payment.cargo != null && 
+              payment.cargo.key != null && 
+              cargo.key != null &&
+              payment.cargo.key == cargo.key)
+            .toList();
+        
+        // قیمت کل بر اساس وزن و قیمت هر تن
+        final totalCargoPrice = cargo.totalPrice;
+        
+        if (paymentsForCargo.isEmpty) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'پرداخت‌ها:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              const Text('هیچ پرداختی برای این سرویس بار ثبت نشده است.'),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('قیمت کل سرویس بار:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text(
+                    '${formatNumber(totalCargoPrice)} تومان',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ],
+          );
+        }
+        
+        // محاسبه جمع پرداخت‌ها
+        double totalPaid = paymentsForCargo.fold(
+            0, (sum, payment) => sum + payment.amount);
+        double remaining = totalCargoPrice - totalPaid;
+        
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'پرداخت‌ها:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            for (var payment in paymentsForCargo)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      DateFormat('yyyy/MM/dd').format(payment.paymentDate),
+                    ),
+                    Text(
+                      '${formatNumber(payment.amount)} تومان',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ),
+            const Divider(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('قیمت کل سرویس بار:', style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(
+                  '${formatNumber(totalCargoPrice)} تومان',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('جمع پرداخت‌ها:', style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(
+                  '${formatNumber(totalPaid)} تومان',
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('مانده قابل پرداخت:', style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(
+                  '${formatNumber(remaining)} تومان',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: remaining > 0 ? Colors.red : Colors.green,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _addPaymentForCargo(BuildContext context, Cargo cargo) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PaymentForm(cargo: cargo),
+      ),
+    );
+  }
+
   Future<bool> _confirmDelete(BuildContext context) async {
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('تأیید حذف'),
-        content: const Text('آیا از حذف این محموله اطمینان دارید؟ این عمل قابل بازگشت نیست.'),
+        content: const Text('آیا از حذف این سرویس بار اطمینان دارید؟ این عمل قابل بازگشت نیست.'),
         actions: [
           TextButton(
             onPressed: () {

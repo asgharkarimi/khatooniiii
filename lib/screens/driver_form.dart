@@ -451,22 +451,25 @@ class _DriverFormState extends State<DriverForm> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: _saveDriver,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue[800],
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 50.0),
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: _saveDriver,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue[800],
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            elevation: 2,
                           ),
-                          elevation: 2,
-                        ),
-                        child: Text(
-                          widget.driver == null ? 'ثبت راننده' : 'ذخیره تغییرات',
-                          style: const TextStyle(fontSize: 16),
+                          child: Text(
+                            widget.driver == null ? 'ثبت راننده' : 'ذخیره تغییرات',
+                            style: const TextStyle(fontSize: 16),
+                          ),
                         ),
                       ),
                     ),
