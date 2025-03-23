@@ -42,7 +42,31 @@ class CargoAdapter extends TypeAdapter<Cargo> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     
-    // Make sure we have a transportCostPerTon value (default to 0 if not present)
+    // Make sure all numeric fields have sensible defaults if missing or null
+    double weight = 0.0;
+    if (fields.containsKey(7)) {
+      final value = fields[7];
+      if (value is double) {
+        weight = value;
+      }
+    }
+    
+    double pricePerTon = 0.0;
+    if (fields.containsKey(8)) {
+      final value = fields[8];
+      if (value is double) {
+        pricePerTon = value;
+      }
+    }
+    
+    int paymentStatus = PaymentStatus.pending;
+    if (fields.containsKey(9)) {
+      final value = fields[9];
+      if (value is int) {
+        paymentStatus = value;
+      }
+    }
+    
     double transportCost = 0.0;
     if (fields.containsKey(10)) {
       final value = fields[10];
@@ -52,16 +76,16 @@ class CargoAdapter extends TypeAdapter<Cargo> {
     }
     
     return Cargo(
-      id: fields[0] as int?,
+      id: fields.containsKey(0) ? fields[0] as int? : null,
       vehicle: fields[1] as Vehicle,
       driver: fields[2] as Driver,
       cargoType: fields[3] as CargoType,
       origin: fields[4] as String,
       destination: fields[5] as String,
       date: fields[6] as DateTime,
-      weight: fields[7] as double,
-      pricePerTon: fields[8] as double,
-      paymentStatus: fields[9] as int,
+      weight: weight,
+      pricePerTon: pricePerTon,
+      paymentStatus: paymentStatus,
       transportCostPerTon: transportCost,
     );
   }

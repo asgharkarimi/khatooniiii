@@ -33,37 +33,49 @@ class _CargoTypeFormState extends State<CargoTypeForm> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              TextFormField(
-                controller: _cargoNameController,
-                decoration: const InputDecoration(
-                  labelText: 'نام نوع سرویس بار',
-                  border: OutlineInputBorder(),
+        child: Center(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  constraints: const BoxConstraints(maxWidth: 400),
+                  child: TextFormField(
+                    controller: _cargoNameController,
+                    decoration: const InputDecoration(
+                      labelText: 'نام نوع سرویس بار',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'لطفاً نام نوع سرویس بار را وارد کنید';
+                      }
+                      return null;
+                    },
+                  ),
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'لطفاً نام نوع سرویس بار را وارد کنید';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _submitForm,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue[800],
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(double.infinity, 50),
+                const SizedBox(height: 24),
+                Container(
+                  constraints: const BoxConstraints(maxWidth: 400),
+                  child: ElevatedButton(
+                    onPressed: _submitForm,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue[800],
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text(
+                      widget.cargoType == null ? 'ثبت نوع سرویس بار' : 'ذخیره تغییرات',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ),
                 ),
-                child: Text(
-                  widget.cargoType == null ? 'ثبت نوع سرویس بار' : 'ذخیره تغییرات',
-                  style: const TextStyle(fontSize: 16),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

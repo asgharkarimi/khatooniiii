@@ -44,104 +44,123 @@ class DriverList extends StatelessWidget {
 
           final drivers = driversBox.values.toList();
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: drivers.length,
-            itemBuilder: (context, index) {
-              final driver = drivers[index];
-              final hasImage = driver.imagePath != null;
-              
-              return Card(
-                margin: const EdgeInsets.only(bottom: 16),
-                elevation: 2,
-                child: InkWell(
-                  onTap: () => _showDriverDetails(context, driver),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Row(
-                      children: [
-                        // Driver image or placeholder
-                        Container(
-                          width: 60,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: hasImage ? null : Colors.grey[200],
-                            image: hasImage
-                                ? DecorationImage(
-                                    image: FileImage(File(driver.imagePath!)),
-                                    fit: BoxFit.cover,
-                                  )
-                                : null,
-                          ),
-                          child: hasImage
-                              ? null
-                              : Icon(Icons.person, size: 30, color: Colors.grey[400]),
-                        ),
-                        const SizedBox(width: 16),
-                        // Driver info
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                driver.name,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'شماره موبایل: ${driver.mobile}',
-                                style: TextStyle(color: Colors.grey[600]),
-                              ),
-                              Text(
-                                'کد ملی: ${driver.nationalId}',
-                                style: TextStyle(color: Colors.grey[600]),
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Action buttons
-                        Column(
+          return Stack(
+            children: [
+              ListView.builder(
+                padding: const EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 80),
+                itemCount: drivers.length,
+                itemBuilder: (context, index) {
+                  final driver = drivers[index];
+                  final hasImage = driver.imagePath != null;
+                  
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    elevation: 2,
+                    child: InkWell(
+                      onTap: () => _showDriverDetails(context, driver),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Row(
                           children: [
-                            IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.blue),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => DriverForm(driver: driver),
-                                  ),
-                                );
-                              },
+                            // Driver image or placeholder
+                            Container(
+                              width: 60,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: hasImage ? null : Colors.grey[200],
+                                image: hasImage
+                                    ? DecorationImage(
+                                        image: FileImage(File(driver.imagePath!)),
+                                        fit: BoxFit.cover,
+                                      )
+                                    : null,
+                              ),
+                              child: hasImage
+                                  ? null
+                                  : Icon(Icons.person, size: 30, color: Colors.grey[400]),
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () => _confirmDelete(context, driver),
+                            const SizedBox(width: 16),
+                            // Driver info
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    driver.name,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'شماره موبایل: ${driver.mobile}',
+                                    style: TextStyle(color: Colors.grey[600]),
+                                  ),
+                                  Text(
+                                    'کد ملی: ${driver.nationalId}',
+                                    style: TextStyle(color: Colors.grey[600]),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            // Action buttons
+                            Column(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit, color: Colors.blue),
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => DriverForm(driver: driver),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete, color: Colors.red),
+                                  onPressed: () => _confirmDelete(context, driver),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+              // Center Add Driver Button
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 16,
+                child: Center(
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const DriverForm()),
+                      );
+                    },
+                    icon: const Icon(Icons.add),
+                    label: const Text('افزودن راننده'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
                     ),
                   ),
                 ),
-              );
-            },
+              ),
+            ],
           );
         },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const DriverForm()),
-          );
-        },
-        icon: const Icon(Icons.add),
-        label: const Text('افزودن راننده'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
     );
   }

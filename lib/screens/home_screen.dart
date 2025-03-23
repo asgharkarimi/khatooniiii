@@ -43,7 +43,7 @@ class HomeScreen extends StatelessWidget {
         ),
         child: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 56.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -72,11 +72,11 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ),
                 
-                const SizedBox(height: 16),
+                const SizedBox(height: 40),
                 
                 // Stats section
                 _buildStatsSection(context),
-                const SizedBox(height: 24),
+                const SizedBox(height: 40),
                 
                 // Sections divider
                 const Padding(
@@ -84,17 +84,10 @@ class HomeScreen extends StatelessWidget {
                   child: Divider(thickness: 1.5),
                 ),
                 
+                const SizedBox(height: 40),
+                
                 // Create New section
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16.0),
-                  child: Text(
-                    'مدیریت سیستم',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
+              
                 _buildCreateNewGrid(context),
               ],
             ),
@@ -289,25 +282,25 @@ class HomeScreen extends StatelessWidget {
     ];
     
     final reportItems = [
-      _MenuItem('گزارش سرویس‌های بار', Icons.local_shipping, () {
+      _MenuItem('گزارش گیری سرویس‌های بار', Icons.local_shipping, () {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const CargoReportScreen()),
         );
       }),
-      _MenuItem('گزارش مالی', Icons.monetization_on, () {
-        _showTemporaryMessage(context, 'صفحه گزارش مالی به زودی اضافه می‌شود');
+      _MenuItem('گزارش گیری مالی', Icons.monetization_on, () {
+        _showTemporaryMessage(context, 'صفحه گزارش گیری مالی به زودی اضافه می‌شود');
       }),
-      _MenuItem('گزارش هزینه‌ها', Icons.money_off, () {
-        _showTemporaryMessage(context, 'صفحه گزارش هزینه‌ها به زودی اضافه می‌شود');
+      _MenuItem('گزارش گیری هزینه‌ها', Icons.money_off, () {
+        _showTemporaryMessage(context, 'صفحه گزارش گیری هزینه‌ها به زودی اضافه می‌شود');
       }),
-      _MenuItem('گزارش راننده‌ها', Icons.people, () {
-        _showTemporaryMessage(context, 'صفحه گزارش راننده‌ها به زودی اضافه می‌شود');
+      _MenuItem('گزارش گیری راننده‌ها', Icons.people, () {
+        _showTemporaryMessage(context, 'صفحه گزارش گیری راننده‌ها به زودی اضافه می‌شود');
       }),
-      _MenuItem('گزارش مشتریان', Icons.person_outline, () {
-        _showTemporaryMessage(context, 'صفحه گزارش مشتریان به زودی اضافه می‌شود');
+      _MenuItem('گزارش گیری مشتریان', Icons.person_outline, () {
+        _showTemporaryMessage(context, 'صفحه گزارش گیری مشتریان به زودی اضافه می‌شود');
       }),
-      _MenuItem('گزارش خلاصه', Icons.analytics, () {
+      _MenuItem('گزارش گیری خلاصه', Icons.analytics, () {
         _showReportOptions(context);
       }),
     ];
@@ -316,98 +309,163 @@ class HomeScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Registration section
-        const Padding(
-          padding: EdgeInsets.only(bottom: 12.0),
-          child: Text(
-            'ثبت اطلاعات جدید',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        SizedBox(
-          height: (registrationItems.length / 3).ceil() * 120.0,
-          child: GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 0.9,
-            ),
-            itemCount: registrationItems.length,
-            itemBuilder: (context, index) {
-              final item = registrationItems[index];
-              return _buildMenuCard(context, item, Colors.blue.shade50);
-            },
+        Card(
+          elevation: 4,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                decoration: BoxDecoration(
+                  color: Colors.blue[700],
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                  ),
+                ),
+                child: const Text(
+                  'ثبت اطلاعات جدید',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: SizedBox(
+                  height: (registrationItems.length / 3).ceil() * 130.0 + 20,
+                  child: GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 0.85,
+                    ),
+                    itemCount: registrationItems.length,
+                    itemBuilder: (context, index) {
+                      final item = registrationItems[index];
+                      return _buildMenuCard(context, item, Colors.blue.shade50);
+                    },
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
         
-        const SizedBox(height: 24),
+        const SizedBox(height: 40),
         
         // Management section
-        const Padding(
-          padding: EdgeInsets.only(bottom: 12.0),
-          child: Text(
-            'مدیریت اطلاعات',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        SizedBox(
-          height: (managementItems.length / 3).ceil() * 120.0,
-          child: GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 0.9,
-            ),
-            itemCount: managementItems.length,
-            itemBuilder: (context, index) {
-              final item = managementItems[index];
-              return _buildMenuCard(context, item, Colors.green.shade50);
-            },
+        Card(
+          elevation: 4,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                decoration: BoxDecoration(
+                  color: Colors.green[700],
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                  ),
+                ),
+                child: const Text(
+                  'مدیریت اطلاعات',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: SizedBox(
+                  height: (managementItems.length / 3).ceil() * 130.0 + 20,
+                  child: GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 0.85,
+                    ),
+                    itemCount: managementItems.length,
+                    itemBuilder: (context, index) {
+                      final item = managementItems[index];
+                      return _buildMenuCard(context, item, Colors.green.shade50);
+                    },
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
         
-        const SizedBox(height: 24),
+        const SizedBox(height: 40),
         
         // Reports section
-        const Padding(
-          padding: EdgeInsets.only(bottom: 12.0),
-          child: Text(
-            'گزارش‌ها',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+        Card(
+          elevation: 4,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                decoration: BoxDecoration(
+                  color: Colors.purple[700],
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                  ),
+                ),
+                child: const Text(
+                  'گزارش گیری',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: SizedBox(
+                  height: (reportItems.length / 3).ceil() * 130.0 + 20,
+                  child: GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 0.85,
+                    ),
+                    itemCount: reportItems.length,
+                    itemBuilder: (context, index) {
+                      final item = reportItems[index];
+                      return _buildMenuCard(context, item, Colors.purple.shade50);
+                    },
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
-        SizedBox(
-          height: (reportItems.length / 3).ceil() * 120.0,
-          child: GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 0.9,
-            ),
-            itemCount: reportItems.length,
-            itemBuilder: (context, index) {
-              final item = reportItems[index];
-              return _buildMenuCard(context, item, Colors.purple.shade50);
-            },
-          ),
-        ),
+        
+        const SizedBox(height: 40),
       ],
     );
   }
@@ -463,6 +521,7 @@ class HomeScreen extends StatelessWidget {
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       color: backgroundColor,
+      margin: const EdgeInsets.all(4.0),
       child: InkWell(
         onTap: item.onTap,
         borderRadius: BorderRadius.circular(16),
@@ -494,10 +553,10 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               SizedBox(
-                height: 32,
+                height: 30,
                 child: Text(
                   item.title,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
                   textAlign: TextAlign.center,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -574,7 +633,7 @@ class HomeScreen extends StatelessWidget {
                 const SizedBox(height: 8),
                 _buildReportOption(
                   context,
-                  'گزارش سرویس‌های بار',
+                  'گزارش گیری سرویس‌های بار',
                   Icons.local_shipping,
                   Colors.blue,
                   () {
@@ -586,53 +645,53 @@ class HomeScreen extends StatelessWidget {
                       );
                     } catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('خطا در بارگیری صفحه گزارش: $e')),
+                        SnackBar(content: Text('خطا در بارگیری صفحه گزارش گیری: $e')),
                       );
                     }
                   },
                 ),
                 _buildReportOption(
                   context,
-                  'گزارش مالی',
+                  'گزارش گیری مالی',
                   Icons.monetization_on,
                   Colors.green,
                   () {
                     Navigator.pop(context);
                     // TODO: نمایش صفحه گزارش مالی
-                    _showTemporaryMessage(context, 'صفحه گزارش مالی به زودی اضافه می‌شود');
+                    _showTemporaryMessage(context, 'صفحه گزارش گیری مالی به زودی اضافه می‌شود');
                   },
                 ),
                 _buildReportOption(
                   context,
-                  'گزارش هزینه‌ها',
+                  'گزارش گیری هزینه‌ها',
                   Icons.money_off,
                   Colors.red,
                   () {
                     Navigator.pop(context);
                     // TODO: نمایش صفحه گزارش هزینه‌ها
-                    _showTemporaryMessage(context, 'صفحه گزارش هزینه‌ها به زودی اضافه می‌شود');
+                    _showTemporaryMessage(context, 'صفحه گزارش گیری هزینه‌ها به زودی اضافه می‌شود');
                   },
                 ),
                 _buildReportOption(
                   context,
-                  'گزارش راننده‌ها',
+                  'گزارش گیری راننده‌ها',
                   Icons.person,
                   Colors.orange,
                   () {
                     Navigator.pop(context);
                     // TODO: نمایش صفحه گزارش راننده‌ها
-                    _showTemporaryMessage(context, 'صفحه گزارش راننده‌ها به زودی اضافه می‌شود');
+                    _showTemporaryMessage(context, 'صفحه گزارش گیری راننده‌ها به زودی اضافه می‌شود');
                   },
                 ),
                 _buildReportOption(
                   context,
-                  'گزارش مشتریان',
+                  'گزارش گیری مشتریان',
                   Icons.person_outline,
                   Colors.purple,
                   () {
                     Navigator.pop(context);
                     // TODO: نمایش صفحه گزارش مشتریان
-                    _showTemporaryMessage(context, 'صفحه گزارش مشتریان به زودی اضافه می‌شود');
+                    _showTemporaryMessage(context, 'صفحه گزارش گیری مشتریان به زودی اضافه می‌شود');
                   },
                 ),
               ],

@@ -69,44 +69,67 @@ class _CargoFormState extends State<CargoForm> {
     }
   }
 
-  void _submitForm() async {
-    if (_formKey.currentState!.validate() && _validateDropdowns()) {
-      setState(() {
-        _isLoading = true;
-        _errorMessage = '';
-      });
+  void _submitForm() {
+    if (_formKey.currentState!.validate()) {
+      // Default values for numeric fields
+      double pricePerTon = 0;
+      double weight = 0;
+      double transportCost = 0;
 
-      try {
-        final cargosBox = Hive.box<Cargo>('cargos');
-
-        // Create and save the new cargo record
-        final newCargo = Cargo(
-          vehicle: _selectedVehicle!,
-          driver: _selectedDriver!,
-          cargoType: _selectedCargoType!,
-          origin: _originController.text.trim(),
-          destination: _destinationController.text.trim(),
-          date: _selectedDate,
-          weight: parseFormattedNumber(_weightController.text),
-          pricePerTon: parseFormattedNumber(_pricePerTonController.text),
-          transportCostPerTon: parseFormattedNumber(_transportCostPerTonController.text),
-          paymentStatus: PaymentStatus.pending,
-        );
-
-        await cargosBox.add(newCargo);
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('سرویس بار با موفقیت اضافه شد')),
-          );
-          Navigator.pop(context);
-        }
-      } catch (e) {
-        setState(() {
-          _errorMessage = 'خطا در ذخیره سرویس بار: ${e.toString()}';
-          _isLoading = false;
-        });
+      // Parse weight with proper null checking
+      if (_weightController.text.isNotEmpty) {
+        weight = parseFormattedNumber(_weightController.text);
       }
+
+      // Parse price per ton with proper null checking
+      if (_pricePerTonController.text.isNotEmpty) {
+        pricePerTon = parseFormattedNumber(_pricePerTonController.text);
+      }
+
+      // Parse transport cost per ton with proper null checking
+      if (_transportCostPerTonController.text.isNotEmpty) {
+        transportCost = parseFormattedNumber(_transportCostPerTonController.text);
+      }
+
+      final cargo = Cargo(
+        id: widget.cargo?.id,
+        vehicle: _selectedVehicle!,
+        driver: _selectedDriver!,
+        cargoType: _selectedCargoType!,
+        origin: _originController.text,
+        destination: _destinationController.text,
+        date: _selectedDate,
+        weight: weight,
+        pricePerTon: pricePerTon,
+        paymentStatus: widget.cargo?.paymentStatus ?? PaymentStatus.pending,
+        transportCostPerTon: transportCost,
+      );
+
+      final cargosBox = Hive.box<Cargo>('cargos');
+      if (widget.cargo != null) {
+        // Editing existing cargo
+        widget.cargo!.vehicle = cargo.vehicle;
+        widget.cargo!.driver = cargo.driver;
+        widget.cargo!.cargoType = cargo.cargoType;
+        widget.cargo!.origin = cargo.origin;
+        widget.cargo!.destination = cargo.destination;
+        widget.cargo!.date = cargo.date;
+        widget.cargo!.weight = cargo.weight;
+        widget.cargo!.pricePerTon = cargo.pricePerTon;
+        widget.cargo!.transportCostPerTon = cargo.transportCostPerTon;
+        widget.cargo!.save();
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('سرویس بار با موفقیت ویرایش شد')),
+        );
+      } else {
+        // Adding new cargo
+        cargosBox.add(cargo);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('سرویس بار با موفقیت ثبت شد')),
+        );
+      }
+      Navigator.pop(context);
     }
   }
 
@@ -293,6 +316,8 @@ class _CargoFormState extends State<CargoForm> {
                               controller: _weightController,
                               decoration: InputDecoration(
                                 labelText: 'وزن (کیلوگرم)',
+                                hintText: 'برای محاسبه مقطوع، وزن را صفر وارد کنید',
+                                helperText: 'وزن صفر به معنای محاسبه مقطوع است',
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
@@ -303,45 +328,40 @@ class _CargoFormState extends State<CargoForm> {
                               ],
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'لطفاً وزن را وارد کنید';
+                                  return 'لطفاً وزن را وارد کنید (برای محاسبه مقطوع، مقدار 0 وارد کنید)';
                                 }
                                 return null;
                               },
                             ),
                             const SizedBox(height: 16),
-                            TextFormField(
-                              controller: _pricePerTonController,
-                              decoration: InputDecoration(
-                                labelText: 'قیمت هر تن (تومان)',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8.0),
+                              child: TextFormField(
+                                controller: _pricePerTonController,
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [ThousandsFormatter()],
+                                decoration: const InputDecoration(
+                                  labelText: 'قیمت هر تن بار به تومان',
+                                  hintText: 'برای وزن صفر، این مقدار قیمت کل خواهد بود',
+                                  helperText: 'در صورت وزن صفر، مقدار کل را وارد کنید',
+                                  border: OutlineInputBorder(),
                                 ),
                               ),
-                              keyboardType: const TextInputType.numberWithOptions(decimal: false),
-                              inputFormatters: [
-                                ThousandsFormatter(separator: '.'),
-                              ],
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'لطفاً قیمت هر تن را وارد کنید';
-                                }
-                                return null;
-                              },
                             ),
                             const SizedBox(height: 16),
-                            TextFormField(
-                              controller: _transportCostPerTonController,
-                              decoration: InputDecoration(
-                                labelText: 'هزینه حمل هر تن بار به تومان',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8.0),
+                              child: TextFormField(
+                                controller: _transportCostPerTonController,
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [ThousandsFormatter()],
+                                decoration: const InputDecoration(
+                                  labelText: 'هزینه حمل هر تن بار به تومان',
+                                  hintText: 'برای وزن صفر، این مقدار هزینه کل خواهد بود',
+                                  helperText: 'در صورت وزن صفر، هزینه کل را وارد کنید (اختیاری)',
+                                  border: OutlineInputBorder(),
                                 ),
-                                hintText: 'هزینه راننده، سوخت و...',
                               ),
-                              keyboardType: const TextInputType.numberWithOptions(decimal: false),
-                              inputFormatters: [
-                                ThousandsFormatter(separator: '.'),
-                              ],
                             ),
                           ],
                         ),
