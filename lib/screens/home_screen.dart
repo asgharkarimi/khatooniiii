@@ -289,7 +289,7 @@ class HomeScreen extends StatelessWidget {
     ];
     
     final reportItems = [
-      _MenuItem('گزارش سرویس‌ها', Icons.local_shipping, () {
+      _MenuItem('گزارش سرویس‌های بار', Icons.local_shipping, () {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const CargoReportScreen()),
@@ -326,20 +326,23 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
         ),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 0.9,
+        SizedBox(
+          height: (registrationItems.length / 3).ceil() * 120.0,
+          child: GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 0.9,
+            ),
+            itemCount: registrationItems.length,
+            itemBuilder: (context, index) {
+              final item = registrationItems[index];
+              return _buildMenuCard(context, item, Colors.blue.shade50);
+            },
           ),
-          itemCount: registrationItems.length,
-          itemBuilder: (context, index) {
-            final item = registrationItems[index];
-            return _buildMenuCard(context, item, Colors.blue.shade50);
-          },
         ),
         
         const SizedBox(height: 24),
@@ -355,20 +358,23 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
         ),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 0.9,
+        SizedBox(
+          height: (managementItems.length / 3).ceil() * 120.0,
+          child: GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 0.9,
+            ),
+            itemCount: managementItems.length,
+            itemBuilder: (context, index) {
+              final item = managementItems[index];
+              return _buildMenuCard(context, item, Colors.green.shade50);
+            },
           ),
-          itemCount: managementItems.length,
-          itemBuilder: (context, index) {
-            final item = managementItems[index];
-            return _buildMenuCard(context, item, Colors.green.shade50);
-          },
         ),
         
         const SizedBox(height: 24),
@@ -384,20 +390,23 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
         ),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 0.9,
+        SizedBox(
+          height: (reportItems.length / 3).ceil() * 120.0,
+          child: GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 0.9,
+            ),
+            itemCount: reportItems.length,
+            itemBuilder: (context, index) {
+              final item = reportItems[index];
+              return _buildMenuCard(context, item, Colors.purple.shade50);
+            },
           ),
-          itemCount: reportItems.length,
-          itemBuilder: (context, index) {
-            final item = reportItems[index];
-            return _buildMenuCard(context, item, Colors.purple.shade50);
-          },
         ),
       ],
     );
@@ -458,12 +467,13 @@ class HomeScreen extends StatelessWidget {
         onTap: item.onTap,
         borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(6.0),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   shape: BoxShape.circle,
@@ -479,16 +489,19 @@ class HomeScreen extends StatelessWidget {
                 child: Icon(
                   item.icon,
                   color: Theme.of(context).colorScheme.primary,
-                  size: 28,
+                  size: 24,
                 ),
               ),
-              const SizedBox(height: 12),
-              Text(
-                item.title,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 32,
+                child: Text(
+                  item.title,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
           ),
@@ -566,10 +579,16 @@ class HomeScreen extends StatelessWidget {
                   Colors.blue,
                   () {
                     Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const CargoReportScreen()),
-                    );
+                    try {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const CargoReportScreen()),
+                      );
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('خطا در بارگیری صفحه گزارش: $e')),
+                      );
+                    }
                   },
                 ),
                 _buildReportOption(

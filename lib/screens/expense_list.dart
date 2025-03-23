@@ -96,6 +96,33 @@ class ExpenseList extends StatelessWidget {
                         ),
                         leading: _getCategoryIcon(expense.category),
                       ),
+                      // Show related cargo info if available
+                      if (expense.cargo != null)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade50,
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: Colors.blue.shade200),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.local_shipping, size: 14, color: Colors.blue.shade700),
+                                const SizedBox(width: 4),
+                                Flexible(
+                                  child: Text(
+                                    '${expense.cargo!.driver.name} - ${expense.cargo!.origin} به ${expense.cargo!.destination}',
+                                    style: TextStyle(fontSize: 12, color: Colors.blue.shade700),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         child: Row(

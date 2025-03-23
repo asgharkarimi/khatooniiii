@@ -10,14 +10,18 @@ import 'package:khatooniiii/models/expense.dart';
 import 'package:khatooniiii/screens/home_screen.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'theme/app_theme.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize Hive
+  // Reset Hive database if schema has changed
+  await _resetHiveIfNeeded();
+  
   await Hive.initFlutter();
   
-  // Register adapters
+  // Register Hive adapters
   Hive.registerAdapter(DriverAdapter());
   Hive.registerAdapter(VehicleAdapter());
   Hive.registerAdapter(CargoTypeAdapter());
@@ -25,8 +29,8 @@ void main() async {
   Hive.registerAdapter(CargoAdapter());
   Hive.registerAdapter(PaymentAdapter());
   Hive.registerAdapter(ExpenseAdapter());
-  
-  // Open boxes
+
+  // Open Hive boxes
   await Hive.openBox<Driver>('drivers');
   await Hive.openBox<Vehicle>('vehicles');
   await Hive.openBox<CargoType>('cargoTypes');
@@ -34,8 +38,92 @@ void main() async {
   await Hive.openBox<Cargo>('cargos');
   await Hive.openBox<Payment>('payments');
   await Hive.openBox<Expense>('expenses');
-  
+
+  // Run migration to ensure all Cargo objects have transportCostPerTon set
+  await _migrateCargoObjects();
+
   runApp(const MyApp());
+}
+
+// مهاجرت داده‌های قدیمی برای اطمینان از اینکه همه اشیاء Cargo دارای مقدار پیش‌فرض برای transportCostPerTon هستند
+Future<void> _migrateCargoObjects() async {
+  final cargosBox = Hive.box<Cargo>('cargos');
+  
+  for (int i = 0; i < cargosBox.length; i++) {
+    final cargo = cargosBox.getAt(i);
+    
+    // If cargo exists, ensure transportCostPerTon is not null
+    if (cargo != null) {
+      try {
+        // Access the field to check if it causes an error
+        cargo.transportCostPerTon;
+      } catch (e) {
+        // If there's an error, the field was null or didn't exist
+        // We need to replace the cargo object with a new one that includes the field
+        final updatedCargo = Cargo(
+          id: cargo.id,
+          vehicle: cargo.vehicle,
+          driver: cargo.driver,
+          cargoType: cargo.cargoType,
+          origin: cargo.origin,
+          destination: cargo.destination,
+          date: cargo.date,
+          weight: cargo.weight,
+          pricePerTon: cargo.pricePerTon,
+          paymentStatus: cargo.paymentStatus,
+          transportCostPerTon: 0, // Set default value
+        );
+        
+        // Put the updated object back in the same position
+        cargosBox.putAt(i, updatedCargo);
+      }
+    }
+  }
+}
+
+// Check if we need to reset the Hive database
+Future<void> _resetHiveIfNeeded() async {
+  final appDocDir = await getApplicationDocumentsDirectory();
+  final appDbDir = Directory('${appDocDir.path}/database_version.txt');
+  
+  // Current database version - increment this when schema changes
+  const currentVersion = '1.1';
+  
+  try {
+    if (await appDbDir.exists()) {
+      final versionFile = File('${appDocDir.path}/database_version.txt');
+      final savedVersion = await versionFile.readAsString();
+      
+      if (savedVersion != currentVersion) {
+        // Version mismatch - delete database
+        await _deleteHiveFiles();
+        await versionFile.writeAsString(currentVersion);
+      }
+    } else {
+      // First run - create version file
+      final versionFile = File('${appDocDir.path}/database_version.txt');
+      await versionFile.create(recursive: true);
+      await versionFile.writeAsString(currentVersion);
+    }
+  } catch (e) {
+    print('Error checking database version: $e');
+    // On error, recreate database to be safe
+    await _deleteHiveFiles();
+    
+    final versionFile = File('${appDocDir.path}/database_version.txt');
+    await versionFile.create(recursive: true);
+    await versionFile.writeAsString(currentVersion);
+  }
+}
+
+// Delete all Hive database files
+Future<void> _deleteHiveFiles() async {
+  final appDocDir = await getApplicationDocumentsDirectory();
+  final appHiveDir = Directory('${appDocDir.path}/hive');
+  
+  if (await appHiveDir.exists()) {
+    await appHiveDir.delete(recursive: true);
+  }
 }
 
 class MyApp extends StatelessWidget {

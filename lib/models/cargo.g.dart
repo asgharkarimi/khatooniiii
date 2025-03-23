@@ -41,6 +41,16 @@ class CargoAdapter extends TypeAdapter<Cargo> {
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
+    
+    // Make sure we have a transportCostPerTon value (default to 0 if not present)
+    double transportCost = 0.0;
+    if (fields.containsKey(10)) {
+      final value = fields[10];
+      if (value is double) {
+        transportCost = value;
+      }
+    }
+    
     return Cargo(
       id: fields[0] as int?,
       vehicle: fields[1] as Vehicle,
@@ -52,13 +62,14 @@ class CargoAdapter extends TypeAdapter<Cargo> {
       weight: fields[7] as double,
       pricePerTon: fields[8] as double,
       paymentStatus: fields[9] as int,
+      transportCostPerTon: transportCost,
     );
   }
 
   @override
   void write(BinaryWriter writer, Cargo obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(11)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -78,7 +89,9 @@ class CargoAdapter extends TypeAdapter<Cargo> {
       ..writeByte(8)
       ..write(obj.pricePerTon)
       ..writeByte(9)
-      ..write(obj.paymentStatus);
+      ..write(obj.paymentStatus)
+      ..writeByte(10)
+      ..write(obj.transportCostPerTon);
   }
 
   @override

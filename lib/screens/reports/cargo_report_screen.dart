@@ -716,6 +716,11 @@ class _CargoReportScreenState extends State<CargoReportScreen> with SingleTicker
           }
         }
         
+        // محاسبه درصد وصول، با محافظت در برابر تقسیم بر صفر
+        final collectionPercentage = totalPriceSum > 0 
+            ? ((totalPaidSum / totalPriceSum) * 100).toStringAsFixed(1) 
+            : '0.0';
+        
         return SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -742,7 +747,7 @@ class _CargoReportScreenState extends State<CargoReportScreen> with SingleTicker
                       _buildSummaryRow('مجموع پرداخت شده:', '${formatNumber(totalPaidSum)} تومان', color: Colors.green),
                       _buildSummaryRow('مجموع باقیمانده:', '${formatNumber(totalRemainingSum)} تومان', color: Colors.red),
                       const Divider(),
-                      _buildSummaryRow('درصد وصول:', '${((totalPaidSum / totalPriceSum) * 100).toStringAsFixed(1)}%'),
+                      _buildSummaryRow('درصد وصول:', '$collectionPercentage%'),
                     ],
                   ),
                 ),
@@ -920,14 +925,21 @@ class _CargoReportScreenState extends State<CargoReportScreen> with SingleTicker
         final width = constraints.maxWidth;
         final height = constraints.maxHeight;
         
+        // Prevent division by zero or negative values
+        if (total <= 0) {
+          return const Center(
+            child: Text('داده‌ای برای نمایش وجود ندارد'),
+          );
+        }
+        
         // ستون مبلغ کل
         final totalBarWidth = width * 0.25;
         final totalBarHeight = height * 0.8;
         
         // ستون‌های پرداخت شده و بدهکاری
         final detailBarWidth = width * 0.25;
-        final paidBarHeight = paid / total * totalBarHeight;
-        final debtBarHeight = debt / total * totalBarHeight;
+        final paidBarHeight = (paid / total) * totalBarHeight;
+        final debtBarHeight = (debt / total) * totalBarHeight;
         
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -982,14 +994,21 @@ class _CargoReportScreenState extends State<CargoReportScreen> with SingleTicker
         final width = constraints.maxWidth;
         final height = constraints.maxHeight;
         
+        // Prevent division by zero or negative values
+        if (total <= 0) {
+          return const Center(
+            child: Text('داده‌ای برای نمایش وجود ندارد'),
+          );
+        }
+        
         // ستون مبلغ کل
         final totalBarWidth = width * 0.25;
         final totalBarHeight = height * 0.8;
         
         // ستون‌های هزینه و سود
         final detailBarWidth = width * 0.25;
-        final expenseBarHeight = expense / total * totalBarHeight;
-        final profitBarHeight = profit / total * totalBarHeight;
+        final expenseBarHeight = (expense / total) * totalBarHeight;
+        final profitBarHeight = (profit / total) * totalBarHeight;
         
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,

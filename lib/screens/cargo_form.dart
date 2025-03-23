@@ -23,6 +23,7 @@ class _CargoFormState extends State<CargoForm> {
   final _destinationController = TextEditingController();
   final _weightController = TextEditingController();
   final _pricePerTonController = TextEditingController();
+  final _transportCostPerTonController = TextEditingController();
 
   Vehicle? _selectedVehicle;
   Driver? _selectedDriver;
@@ -50,6 +51,7 @@ class _CargoFormState extends State<CargoForm> {
     _destinationController.dispose();
     _weightController.dispose();
     _pricePerTonController.dispose();
+    _transportCostPerTonController.dispose();
     super.dispose();
   }
 
@@ -87,6 +89,7 @@ class _CargoFormState extends State<CargoForm> {
           date: _selectedDate,
           weight: parseFormattedNumber(_weightController.text),
           pricePerTon: parseFormattedNumber(_pricePerTonController.text),
+          transportCostPerTon: parseFormattedNumber(_transportCostPerTonController.text),
           paymentStatus: PaymentStatus.pending,
         );
 
@@ -324,6 +327,21 @@ class _CargoFormState extends State<CargoForm> {
                                 }
                                 return null;
                               },
+                            ),
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              controller: _transportCostPerTonController,
+                              decoration: InputDecoration(
+                                labelText: 'هزینه حمل هر تن بار به تومان',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                hintText: 'هزینه راننده، سوخت و...',
+                              ),
+                              keyboardType: const TextInputType.numberWithOptions(decimal: false),
+                              inputFormatters: [
+                                ThousandsFormatter(separator: '.'),
+                              ],
                             ),
                           ],
                         ),

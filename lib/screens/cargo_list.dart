@@ -54,37 +54,76 @@ class CargoList extends StatelessWidget {
             final cargo = cargoes[index];
             return Card(
               margin: const EdgeInsets.all(8.0),
-              child: ListTile(
-                title: Text(
-                  '${cargo.origin} به ${cargo.destination}',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                subtitle: Column(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${DateFormat('yyyy/MM/dd').format(cargo.date)} • ${cargo.driver.name} • ${cargo.vehicle.vehicleName}',
+                      '${cargo.origin} به ${cargo.destination}',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'وزن: ${cargo.weight} کیلوگرم • نوع: ${cargo.cargoType.cargoName}',
+                      '${DateFormat('yyyy/MM/dd').format(cargo.date)} • ${cargo.driver.name}',
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                    Text(
+                      '${cargo.vehicle.vehicleName} • نوع: ${cargo.cargoType.cargoName}',
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'وزن: ${cargo.weight} کیلوگرم',
+                      style: const TextStyle(fontSize: 14),
                     ),
                     const SizedBox(height: 4),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'قیمت کل: ${formatNumber(cargo.totalPrice)} تومان',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
+                        Expanded(
+                          child: Text(
+                            'قیمت کل: ${formatNumber(cargo.totalPrice)} تومان',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                         _buildPaymentInfo(cargo),
                       ],
                     ),
+                    if (cargo.transportCostPerTon > 0)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Row(
+                          children: [
+                            Icon(
+                              cargo.netProfit > 0 ? Icons.trending_up : Icons.trending_down,
+                              size: 16,
+                              color: cargo.netProfit > 0 ? Colors.green : Colors.red,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'سود خالص: ${formatNumber(cargo.netProfit)} تومان',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: cargo.netProfit > 0 ? Colors.green : Colors.red,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    _buildExpenseInfo(cargo),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton(
+                        onPressed: () => _showCargoDetails(context, cargo),
+                        child: const Text('مشاهده جزئیات'),
+                      ),
+                    ),
                   ],
                 ),
-                onTap: () => _showCargoDetails(context, cargo),
               ),
             );
           },
@@ -164,6 +203,57 @@ class CargoList extends StatelessWidget {
     );
   }
 
+  // نمایش اطلاعات هزینه‌ها
+  Widget _buildExpenseInfo(Cargo cargo) {
+    return ValueListenableBuilder(
+      valueListenable: Hive.box<Expense>('expenses').listenable(),
+      builder: (context, Box<Expense> box, _) {
+        final expensesForCargo = box.values
+            .where((expense) => 
+              expense.cargo != null && 
+              expense.cargo?.key != null && 
+              cargo.key != null &&
+              expense.cargo!.key == cargo.key)
+            .toList();
+        
+        if (expensesForCargo.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        
+        // محاسبه جمع هزینه‌ها
+        final totalExpenses = expensesForCargo.fold(
+            0.0, (sum, expense) => sum + expense.amount);
+        
+        return Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Wrap(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.purple.shade50,
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: Colors.purple.shade200),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.money_off, size: 14, color: Colors.purple.shade700),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${expensesForCargo.length} هزینه (${formatNumber(totalExpenses)} تومان)',
+                      style: TextStyle(fontSize: 12, color: Colors.purple.shade700),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   void _showCargoDetails(BuildContext context, Cargo cargo) {
     showDialog(
       context: context,
@@ -181,7 +271,14 @@ class CargoList extends StatelessWidget {
               _buildDetailRow('تاریخ', DateFormat('yyyy/MM/dd').format(cargo.date)),
               _buildDetailRow('وزن', '${formatNumber(cargo.weight)} کیلوگرم (${formatNumber(cargo.weightInTons, separator: '/')} تن)'),
               _buildDetailRow('قیمت هر تن', '${formatNumber(cargo.pricePerTon)} تومان'),
+              if (cargo.transportCostPerTon > 0)
+                _buildDetailRow('هزینه حمل هر تن', '${formatNumber(cargo.transportCostPerTon)} تومان'),
               _buildDetailRow('قیمت کل', '${formatNumber(cargo.totalPrice)} تومان'),
+              if (cargo.transportCostPerTon > 0) ...[
+                _buildDetailRow('هزینه حمل کل', '${formatNumber(cargo.totalTransportCost)} تومان'),
+                _buildDetailRow('سود خالص', '${formatNumber(cargo.netProfit)} تومان', 
+                  color: cargo.netProfit > 0 ? Colors.green : Colors.red),
+              ],
               _buildDetailRow('وضعیت پرداخت', _getPaymentStatusText(cargo.paymentStatus)),
               const Divider(height: 24),
               _buildPaymentsList(context, cargo),
@@ -238,14 +335,22 @@ class CargoList extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
+  Widget _buildDetailRow(String label, String value, {Color? color}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('$label: ', style: const TextStyle(fontWeight: FontWeight.bold)),
-          Expanded(child: Text(value)),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                color: color,
+                fontWeight: color != null ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -287,7 +392,9 @@ class CargoList extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('قیمت کل سرویس بار:', style: TextStyle(fontWeight: FontWeight.bold)),
+                          Expanded(
+                            child: const Text('قیمت کل سرویس بار:', style: TextStyle(fontWeight: FontWeight.bold)),
+                          ),
                           Text(
                             '${formatNumber(totalCargoPrice)} تومان',
                             style: const TextStyle(fontWeight: FontWeight.bold),
@@ -298,7 +405,9 @@ class CargoList extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('بدهکاری:', style: TextStyle(fontWeight: FontWeight.bold)),
+                          Expanded(
+                            child: const Text('بدهکاری:', style: TextStyle(fontWeight: FontWeight.bold)),
+                          ),
                           Text(
                             '${formatNumber(totalCargoPrice)} تومان',
                             style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
@@ -339,19 +448,21 @@ class CargoList extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            DateFormat('yyyy/MM/dd').format(payment.paymentDate),
-                            style: const TextStyle(fontSize: 12, color: Colors.grey),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            _getPaymentTypeText(payment.paymentType),
-                            style: const TextStyle(fontSize: 12),
-                          ),
-                        ],
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              DateFormat('yyyy/MM/dd').format(payment.paymentDate),
+                              style: const TextStyle(fontSize: 12, color: Colors.grey),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              _getPaymentTypeText(payment.paymentType),
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          ],
+                        ),
                       ),
                       Text(
                         '${formatNumber(payment.amount)} تومان',
@@ -371,7 +482,9 @@ class CargoList extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('قیمت کل سرویس بار:', style: TextStyle(fontWeight: FontWeight.bold)),
+                        Expanded(
+                          child: const Text('قیمت کل سرویس بار:', style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
                         Text(
                           '${formatNumber(totalCargoPrice)} تومان',
                           style: const TextStyle(fontWeight: FontWeight.bold),
@@ -382,7 +495,9 @@ class CargoList extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('جمع پرداخت‌ها:', style: TextStyle(fontWeight: FontWeight.bold)),
+                        Expanded(
+                          child: const Text('جمع پرداخت‌ها:', style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
                         Text(
                           '${formatNumber(totalPaid)} تومان',
                           style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
@@ -393,9 +508,11 @@ class CargoList extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          remaining > 0 ? 'بدهکاری:' : (remaining < 0 ? 'اضافه پرداخت:' : 'وضعیت:'), 
-                          style: const TextStyle(fontWeight: FontWeight.bold)
+                        Expanded(
+                          child: Text(
+                            remaining > 0 ? 'بدهکاری:' : (remaining < 0 ? 'اضافه پرداخت:' : 'وضعیت:'), 
+                            style: const TextStyle(fontWeight: FontWeight.bold)
+                          ),
                         ),
                         Text(
                           remaining > 0 
@@ -467,6 +584,7 @@ class CargoList extends StatelessWidget {
                     Expanded(
                       child: Text(
                         '${expense.title} (${expense.category})',
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     Text(
@@ -480,7 +598,9 @@ class CargoList extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('جمع هزینه‌ها:', style: TextStyle(fontWeight: FontWeight.bold)),
+                Expanded(
+                  child: const Text('جمع هزینه‌ها:', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
                 Text(
                   '${formatNumber(totalExpenses)} تومان',
                   style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
@@ -491,7 +611,9 @@ class CargoList extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('سود خالص:', style: TextStyle(fontWeight: FontWeight.bold)),
+                Expanded(
+                  child: const Text('سود خالص:', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
                 Text(
                   '${formatNumber(cargo.totalPrice - totalExpenses)} تومان',
                   style: TextStyle(

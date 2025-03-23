@@ -51,6 +51,22 @@ class _ExpenseFormState extends State<ExpenseForm> {
       _selectedCategory = widget.expense!.category;
       _savedImagePath = widget.expense!.imagePath;
       _selectedCargo = widget.expense!.cargo;
+    } else {
+      _selectMostRecentCargo();
+    }
+  }
+
+  void _selectMostRecentCargo() {
+    final cargosBox = Hive.box<Cargo>('cargos');
+    if (cargosBox.isNotEmpty) {
+      final cargos = cargosBox.values.toList()
+        ..sort((a, b) => b.date.compareTo(a.date));
+      
+      if (cargos.isNotEmpty) {
+        setState(() {
+          _selectedCargo = cargos.first;
+        });
+      }
     }
   }
 
@@ -172,7 +188,8 @@ class _ExpenseFormState extends State<ExpenseForm> {
     return ValueListenableBuilder(
       valueListenable: Hive.box<Cargo>('cargos').listenable(),
       builder: (context, Box<Cargo> box, _) {
-        final cargos = box.values.toList();
+        final cargos = box.values.toList()
+          ..sort((a, b) => b.date.compareTo(a.date));
         
         if (cargos.isEmpty) {
           return const SizedBox();
@@ -189,10 +206,18 @@ class _ExpenseFormState extends State<ExpenseForm> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'مرتبط با سرویس بار (اختیاری)',
+                  'مرتبط با سرویس بار',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'به صورت پیش‌فرض، هزینه با آخرین سرویس بار مرتبط می‌شود',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
                   ),
                 ),
                 const SizedBox(height: 8),
