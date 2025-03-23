@@ -1,5 +1,6 @@
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
+import 'package:khatooniiii/models/cargo.dart';
 
 part 'expense.g.dart';
 
@@ -25,6 +26,9 @@ class Expense extends HiveObject {
 
   @HiveField(6)
   String? imagePath;
+  
+  @HiveField(7)
+  Cargo? cargo;
 
   Expense({
     String? id,
@@ -34,5 +38,6 @@ class Expense extends HiveObject {
     required this.category,
     this.description = '',
     this.imagePath,
+    this.cargo,
   }) : id = id ?? const Uuid().v4();
 } 

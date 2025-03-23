@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:khatooniiii/models/expense.dart';
+import 'package:khatooniiii/models/cargo.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import 'package:khatooniiii/utils/number_formatter.dart';
 
 class ExpenseForm extends StatefulWidget {
   final Expense? expense;
@@ -36,6 +38,7 @@ class _ExpenseFormState extends State<ExpenseForm> {
   File? _selectedImage;
   String? _savedImagePath;
   bool _isLoading = false;
+  Cargo? _selectedCargo;
 
   @override
   void initState() {
@@ -47,6 +50,7 @@ class _ExpenseFormState extends State<ExpenseForm> {
       _selectedDate = widget.expense!.date;
       _selectedCategory = widget.expense!.category;
       _savedImagePath = widget.expense!.imagePath;
+      _selectedCargo = widget.expense!.cargo;
     }
   }
 
@@ -112,26 +116,35 @@ class _ExpenseFormState extends State<ExpenseForm> {
     return savedImage.path;
   }
 
-  Future<void> _saveExpense() async {
+  Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
       });
 
       try {
-        final imagePath = await _saveImage();
+        String? imagePath = _savedImagePath;
+        
+        if (_selectedImage != null) {
+          final appDir = await getApplicationDocumentsDirectory();
+          final fileName = 'expense_${DateTime.now().millisecondsSinceEpoch}.jpg';
+          final savedImage = await _selectedImage!.copy('${appDir.path}/$fileName');
+          imagePath = savedImage.path;
+        }
 
-        final expensesBox = Hive.box<Expense>('expenses');
         final expense = Expense(
           id: widget.expense?.id,
           title: _titleController.text,
-          amount: double.parse(_amountController.text.replaceAll(',', '')),
+          amount: double.parse(_amountController.text.replaceAll(',', '').replaceAll('.', '')),
           date: _selectedDate,
           category: _selectedCategory,
           description: _descriptionController.text,
           imagePath: imagePath,
+          cargo: _selectedCargo,
         );
 
+        final expensesBox = Hive.box<Expense>('expenses');
+        
         if (widget.expense != null) {
           await expensesBox.put(widget.expense!.key, expense);
         } else {
@@ -143,7 +156,7 @@ class _ExpenseFormState extends State<ExpenseForm> {
         }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('خطا: $e')),
+          SnackBar(content: Text('خطا در ذخیره هزینه: $e')),
         );
       } finally {
         if (mounted) {
@@ -155,13 +168,87 @@ class _ExpenseFormState extends State<ExpenseForm> {
     }
   }
 
+  Widget _buildCargoDropdown() {
+    return ValueListenableBuilder(
+      valueListenable: Hive.box<Cargo>('cargos').listenable(),
+      builder: (context, Box<Cargo> box, _) {
+        final cargos = box.values.toList();
+        
+        if (cargos.isEmpty) {
+          return const SizedBox();
+        }
+        
+        return Card(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'مرتبط با سرویس بار (اختیاری)',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<Cargo>(
+                  decoration: InputDecoration(
+                    labelText: 'انتخاب سرویس بار',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.grey[400]!),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.grey[400]!),
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey[50],
+                  ),
+                  value: _selectedCargo,
+                  isExpanded: true,
+                  items: [
+                    const DropdownMenuItem<Cargo>(
+                      value: null,
+                      child: Text('بدون ارتباط با سرویس بار'),
+                    ),
+                    ...cargos.map((cargo) {
+                      final date = DateFormat('yyyy/MM/dd').format(cargo.date);
+                      return DropdownMenuItem<Cargo>(
+                        value: cargo,
+                        child: Text(
+                          '${cargo.driver.name} - ${cargo.origin} به ${cargo.destination} (${date})',
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
+                    }).toList(),
+                  ],
+                  onChanged: (Cargo? newValue) {
+                    setState(() {
+                      _selectedCargo = newValue;
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.expense == null ? 'ثبت هزینه جدید' : 'ویرایش هزینه'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+        backgroundColor: Colors.blue[800],
+        foregroundColor: Colors.white,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -193,11 +280,14 @@ class _ExpenseFormState extends State<ExpenseForm> {
                         border: OutlineInputBorder(),
                       ),
                       keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        ThousandsFormatter(separator: '.'),
+                      ],
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'لطفاً مبلغ را وارد کنید';
                         }
-                        if (double.tryParse(value.replaceAll(',', '')) == null) {
+                        if (double.tryParse(value.replaceAll(',', '').replaceAll('.', '')) == null) {
                           return 'لطفاً یک عدد معتبر وارد کنید';
                         }
                         return null;
@@ -291,18 +381,28 @@ class _ExpenseFormState extends State<ExpenseForm> {
                           fit: BoxFit.cover,
                         ),
                       ),
+                    const SizedBox(height: 16),
+                    _buildCargoDropdown(),
                     const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: _saveExpense,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).colorScheme.primary,
-                          foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                        ),
-                        child: Text(
-                          widget.expense == null ? 'ثبت هزینه' : 'بروزرسانی هزینه',
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 50.0),
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: _submitForm,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue[800],
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            elevation: 2,
+                          ),
+                          child: Text(
+                            widget.expense == null ? 'ثبت هزینه' : 'ذخیره تغییرات',
+                            style: const TextStyle(fontSize: 16),
+                          ),
                         ),
                       ),
                     ),

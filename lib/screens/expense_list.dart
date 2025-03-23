@@ -221,6 +221,22 @@ class ExpenseList extends StatelessWidget {
               _buildDetailRow('تاریخ:', DateFormat('yyyy/MM/dd').format(expense.date)),
               if (expense.description.isNotEmpty)
                 _buildDetailRow('توضیحات:', expense.description),
+              
+              // نمایش اطلاعات سرویس بار مرتبط
+              if (expense.cargo != null) ...[
+                const Divider(height: 24),
+                const Text(
+                  'سرویس بار مرتبط:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                _buildDetailRow('راننده:', expense.cargo!.driver.name),
+                _buildDetailRow('مسیر:', '${expense.cargo!.origin} به ${expense.cargo!.destination}'),
+                _buildDetailRow('تاریخ سرویس:', DateFormat('yyyy/MM/dd').format(expense.cargo!.date)),
+              ],
             ],
           ),
         ),

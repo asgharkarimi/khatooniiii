@@ -11,6 +11,7 @@ import 'package:khatooniiii/screens/cargo_list.dart';
 import 'package:khatooniiii/screens/payment_list.dart';
 import 'package:khatooniiii/screens/expense_list.dart';
 import 'package:khatooniiii/screens/customer_list.dart';
+import 'package:khatooniiii/screens/reports/cargo_report_screen.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:khatooniiii/models/driver.dart';
 import 'package:khatooniiii/models/cargo.dart';
@@ -286,6 +287,30 @@ class HomeScreen extends StatelessWidget {
         );
       }),
     ];
+    
+    final reportItems = [
+      _MenuItem('گزارش سرویس‌ها', Icons.local_shipping, () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const CargoReportScreen()),
+        );
+      }),
+      _MenuItem('گزارش مالی', Icons.monetization_on, () {
+        _showTemporaryMessage(context, 'صفحه گزارش مالی به زودی اضافه می‌شود');
+      }),
+      _MenuItem('گزارش هزینه‌ها', Icons.money_off, () {
+        _showTemporaryMessage(context, 'صفحه گزارش هزینه‌ها به زودی اضافه می‌شود');
+      }),
+      _MenuItem('گزارش راننده‌ها', Icons.people, () {
+        _showTemporaryMessage(context, 'صفحه گزارش راننده‌ها به زودی اضافه می‌شود');
+      }),
+      _MenuItem('گزارش مشتریان', Icons.person_outline, () {
+        _showTemporaryMessage(context, 'صفحه گزارش مشتریان به زودی اضافه می‌شود');
+      }),
+      _MenuItem('گزارش خلاصه', Icons.analytics, () {
+        _showReportOptions(context);
+      }),
+    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -343,6 +368,35 @@ class HomeScreen extends StatelessWidget {
           itemBuilder: (context, index) {
             final item = managementItems[index];
             return _buildMenuCard(context, item, Colors.green.shade50);
+          },
+        ),
+        
+        const SizedBox(height: 24),
+        
+        // Reports section
+        const Padding(
+          padding: EdgeInsets.only(bottom: 12.0),
+          child: Text(
+            'گزارش‌ها',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 0.9,
+          ),
+          itemCount: reportItems.length,
+          itemBuilder: (context, index) {
+            final item = reportItems[index];
+            return _buildMenuCard(context, item, Colors.purple.shade50);
           },
         ),
       ],
@@ -439,6 +493,194 @@ class HomeScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  // تابع نمایش آپشن‌های گزارش گیری
+  void _showReportOptions(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text(
+            'گزارش گیری',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // بخش انتخاب دوره زمانی
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'دوره زمانی:',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildPeriodOption(context, 'امروز', Icons.today),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _buildPeriodOption(context, 'هفته', Icons.date_range),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildPeriodOption(context, 'ماه', Icons.calendar_month),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _buildPeriodOption(context, 'سال', Icons.calendar_today),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 24),
+                const Text(
+                  'نوع گزارش:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.right,
+                ),
+                const SizedBox(height: 8),
+                _buildReportOption(
+                  context,
+                  'گزارش سرویس‌های بار',
+                  Icons.local_shipping,
+                  Colors.blue,
+                  () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const CargoReportScreen()),
+                    );
+                  },
+                ),
+                _buildReportOption(
+                  context,
+                  'گزارش مالی',
+                  Icons.monetization_on,
+                  Colors.green,
+                  () {
+                    Navigator.pop(context);
+                    // TODO: نمایش صفحه گزارش مالی
+                    _showTemporaryMessage(context, 'صفحه گزارش مالی به زودی اضافه می‌شود');
+                  },
+                ),
+                _buildReportOption(
+                  context,
+                  'گزارش هزینه‌ها',
+                  Icons.money_off,
+                  Colors.red,
+                  () {
+                    Navigator.pop(context);
+                    // TODO: نمایش صفحه گزارش هزینه‌ها
+                    _showTemporaryMessage(context, 'صفحه گزارش هزینه‌ها به زودی اضافه می‌شود');
+                  },
+                ),
+                _buildReportOption(
+                  context,
+                  'گزارش راننده‌ها',
+                  Icons.person,
+                  Colors.orange,
+                  () {
+                    Navigator.pop(context);
+                    // TODO: نمایش صفحه گزارش راننده‌ها
+                    _showTemporaryMessage(context, 'صفحه گزارش راننده‌ها به زودی اضافه می‌شود');
+                  },
+                ),
+                _buildReportOption(
+                  context,
+                  'گزارش مشتریان',
+                  Icons.person_outline,
+                  Colors.purple,
+                  () {
+                    Navigator.pop(context);
+                    // TODO: نمایش صفحه گزارش مشتریان
+                    _showTemporaryMessage(context, 'صفحه گزارش مشتریان به زودی اضافه می‌شود');
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('بستن'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+  
+  // دکمه‌های انتخاب دوره زمانی گزارش
+  Widget _buildPeriodOption(BuildContext context, String title, IconData icon) {
+    return InkWell(
+      onTap: () {
+        _showTemporaryMessage(context, 'دوره زمانی $title انتخاب شد');
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: Colors.grey.shade300),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 16, color: Colors.grey.shade700),
+            const SizedBox(width: 4),
+            Text(title, style: const TextStyle(fontSize: 12)),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  // نمایش لیست آیتم‌های گزارش
+  Widget _buildReportOption(
+    BuildContext context,
+    String title,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundColor: color.withOpacity(0.2),
+        child: Icon(icon, color: color),
+      ),
+      title: Text(title),
+      onTap: onTap,
+    );
+  }
+  
+  // نمایش پیام موقت
+  void _showTemporaryMessage(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 2),
       ),
     );
   }

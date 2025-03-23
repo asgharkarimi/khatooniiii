@@ -24,13 +24,14 @@ class ExpenseAdapter extends TypeAdapter<Expense> {
       category: fields[4] as String,
       description: fields[5] as String,
       imagePath: fields[6] as String?,
+      cargo: fields[7] as Cargo?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Expense obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -44,7 +45,9 @@ class ExpenseAdapter extends TypeAdapter<Expense> {
       ..writeByte(5)
       ..write(obj.description)
       ..writeByte(6)
-      ..write(obj.imagePath);
+      ..write(obj.imagePath)
+      ..writeByte(7)
+      ..write(obj.cargo);
   }
 
   @override

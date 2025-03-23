@@ -82,18 +82,19 @@ class _PaymentFormState extends State<PaymentForm> {
       try {
         final paymentsBox = Hive.box<Payment>('payments');
 
-        // Check if the payment amount is valid
+        // تبدیل مبلغ از فرمت متنی به عدد
         final amount = parseFormattedNumber(_amountController.text);
         
-        // Update cargo payment status if needed
-        final totalPrice = _selectedCargo!.totalPrice;
+        // بررسی کل پرداخت‌ها و به روزرسانی وضعیت پرداخت سرویس بار
         final existingPayments = paymentsBox.values
-            .where((payment) => payment.cargo.id == _selectedCargo!.id && 
+            .where((payment) => payment.cargo.key == _selectedCargo!.key && 
                   (widget.payment == null || payment.key != widget.payment!.key))
             .fold(0.0, (sum, item) => sum + item.amount);
         
         final newTotal = existingPayments + amount;
+        final totalPrice = _selectedCargo!.totalPrice;
         
+        // تعیین وضعیت پرداخت سرویس بار
         int paymentStatus = PaymentStatus.pending;
         if (newTotal >= totalPrice) {
           paymentStatus = PaymentStatus.fullyPaid;
@@ -283,29 +284,143 @@ class _PaymentFormState extends State<PaymentForm> {
           style: TextStyle(color: Colors.red));
     }
 
-    return DropdownButtonFormField<Cargo>(
-      decoration: const InputDecoration(
-        labelText: 'سرویس بار',
-        border: OutlineInputBorder(),
-      ),
-      value: _selectedCargo,
-      items: cargos.map((cargo) {
-        final driver = cargo.driver;
-        final origin = cargo.origin;
-        final destination = cargo.destination;
-        final dateStr = DateFormat('yyyy/MM/dd').format(cargo.date);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        DropdownButtonFormField<Cargo>(
+          decoration: const InputDecoration(
+            labelText: 'سرویس بار',
+            border: OutlineInputBorder(),
+          ),
+          value: _selectedCargo,
+          isExpanded: true,
+          items: cargos.map((cargo) {
+            final driver = cargo.driver;
+            final origin = cargo.origin;
+            final destination = cargo.destination;
+            final dateStr = DateFormat('yyyy/MM/dd').format(cargo.date);
 
-        return DropdownMenuItem<Cargo>(
-          value: cargo,
-          child: Text('${driver.name} - $origin به $destination ($dateStr)'),
-        );
-      }).toList(),
-      onChanged: (value) {
-        setState(() {
-          _selectedCargo = value;
-        });
-      },
+            return DropdownMenuItem<Cargo>(
+              value: cargo,
+              child: Text('${driver.name} - $origin به $destination ($dateStr)', overflow: TextOverflow.ellipsis),
+            );
+          }).toList(),
+          onChanged: (value) {
+            setState(() {
+              _selectedCargo = value;
+              
+              // اگر سرویس بار انتخاب شده، مبلغ باقیمانده را پیشنهاد بده
+              if (value != null) {
+                _updatePaymentSuggestion();
+              }
+            });
+          },
+        ),
+        if (_selectedCargo != null) 
+          _buildCargoPaymentInfo(),
+      ],
     );
+  }
+
+  // نمایش اطلاعات مالی سرویس بار
+  Widget _buildCargoPaymentInfo() {
+    final paymentsBox = Hive.box<Payment>('payments');
+    final existingPayments = paymentsBox.values
+        .where((payment) => payment.cargo.key == _selectedCargo!.key && 
+              (widget.payment == null || payment.key != widget.payment!.key))
+        .fold(0.0, (sum, item) => sum + item.amount);
+    
+    final totalPrice = _selectedCargo!.totalPrice;
+    final remaining = totalPrice - existingPayments;
+    
+    return Padding(
+      padding: const EdgeInsets.only(top: 8.0),
+      child: Card(
+        elevation: 0,
+        color: Colors.blue.shade50,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('قیمت کل:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text(
+                    '${formatNumber(totalPrice)} تومان',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('پرداخت شده:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text(
+                    '${formatNumber(existingPayments)} تومان',
+                    style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('باقیمانده:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text(
+                    '${formatNumber(remaining)} تومان',
+                    style: TextStyle(
+                      color: remaining > 0 ? Colors.red : Colors.green,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              if (remaining <= 0)
+                const Padding(
+                  padding: EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    'این سرویس بار پرداخت شده است. پرداخت بیشتر به عنوان اضافه پرداخت ثبت خواهد شد.',
+                    style: TextStyle(color: Colors.orange, fontSize: 12),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  
+  // به روزرسانی پیشنهاد مبلغ پرداخت
+  void _updatePaymentSuggestion() {
+    if (_selectedCargo == null) return;
+    
+    final paymentsBox = Hive.box<Payment>('payments');
+    final existingPayments = paymentsBox.values
+        .where((payment) => payment.cargo.key == _selectedCargo!.key && 
+              (widget.payment == null || payment.key != widget.payment!.key))
+        .fold(0.0, (sum, item) => sum + item.amount);
+    
+    final totalPrice = _selectedCargo!.totalPrice;
+    final remaining = totalPrice - existingPayments;
+    
+    // فقط اگر فرم جدید است و مقدار قبلاً تنظیم نشده، مقدار باقیمانده را پیشنهاد کن
+    if (widget.payment == null && _amountController.text.isEmpty && remaining > 0) {
+      _amountController.text = formatNumber(remaining).toString();
+    }
+  }
+  
+  // تبدیل عدد به فرمت خوانا
+  String formatNumber(double number) {
+    return NumberFormat('#,###').format(number);
+  }
+  
+  // تبدیل متن به عدد و حذف کاراکترهای فرمت
+  double parseFormattedNumber(String formattedNumber) {
+    if (formattedNumber.isEmpty) return 0;
+    return double.parse(formattedNumber.replaceAll(',', '').replaceAll('.', ''));
   }
 
   Widget _buildCustomerDropdown() {
@@ -330,10 +445,11 @@ class _PaymentFormState extends State<PaymentForm> {
             border: OutlineInputBorder(),
           ),
           value: _selectedCustomer,
+          isExpanded: true,
           items: customers.map((customer) {
             return DropdownMenuItem<Customer>(
               value: customer,
-              child: Text('${customer.firstName} ${customer.lastName}'),
+              child: Text('${customer.firstName} ${customer.lastName}', overflow: TextOverflow.ellipsis),
             );
           }).toList(),
           onChanged: (value) {
@@ -353,6 +469,7 @@ class _PaymentFormState extends State<PaymentForm> {
         border: OutlineInputBorder(),
       ),
       value: _selectedPaymentType,
+      isExpanded: true,
       items: const [
         DropdownMenuItem<int>(
           value: PaymentType.cash,
@@ -386,6 +503,7 @@ class _PaymentFormState extends State<PaymentForm> {
         border: OutlineInputBorder(),
       ),
       value: _selectedPayerType,
+      isExpanded: true,
       items: const [
         DropdownMenuItem<int>(
           value: PayerType.driverToCompany,
