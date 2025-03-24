@@ -53,22 +53,37 @@ class AppTheme {
     ),
     textTheme: const TextTheme(
       headlineMedium: TextStyle(
+        fontFamily: 'Vazir',
         fontWeight: FontWeight.bold,
         color: Color(0xFF212121),
         fontSize: 18,
       ),
       titleLarge: TextStyle(
+        fontFamily: 'Vazir',
         fontWeight: FontWeight.bold,
         color: Color(0xFF212121),
         fontSize: 16,
       ),
       bodyLarge: TextStyle(
+        fontFamily: 'Vazir',
         color: Color(0xFF424242),
         fontSize: 14,
       ),
       bodyMedium: TextStyle(
+        fontFamily: 'Vazir',
         color: Color(0xFF616161),
         fontSize: 13,
+      ),
+      bodySmall: TextStyle(
+        fontFamily: 'Vazir',
+        color: Color(0xFF616161),
+        fontSize: 12,
+      ),
+      labelLarge: TextStyle(
+        fontFamily: 'Vazir',
+        color: Color(0xFF212121),
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
       ),
     ),
     inputDecorationTheme: InputDecorationTheme(
@@ -92,6 +107,7 @@ class AppTheme {
         borderSide: BorderSide(color: Colors.red[300]!, width: 1),
       ),
     ),
+    fontFamily: 'Vazir',
     scaffoldBackgroundColor: const Color(0xFFF5F5F5),
   );
   
@@ -144,24 +160,39 @@ class AppTheme {
       color: Color(0xFF424242),
       thickness: 1,
     ),
-    textTheme: const TextTheme(
-      headlineMedium: TextStyle(
+    textTheme: TextTheme(
+      headlineMedium: const TextStyle(
+        fontFamily: 'Vazir',
         fontWeight: FontWeight.bold,
         color: Color(0xFFEEEEEE),
         fontSize: 18,
       ),
-      titleLarge: TextStyle(
+      titleLarge: const TextStyle(
+        fontFamily: 'Vazir',
         fontWeight: FontWeight.bold,
         color: Color(0xFFEEEEEE),
         fontSize: 16,
       ),
-      bodyLarge: TextStyle(
+      bodyLarge: const TextStyle(
+        fontFamily: 'Vazir',
         color: Color(0xFFE0E0E0),
         fontSize: 14,
       ),
-      bodyMedium: TextStyle(
+      bodyMedium: const TextStyle(
+        fontFamily: 'Vazir',
         color: Color(0xFFBDBDBD),
         fontSize: 13,
+      ),
+      bodySmall: TextStyle(
+        fontFamily: 'Vazir',
+        color: Colors.grey[400],
+        fontSize: 12,
+      ),
+      labelLarge: const TextStyle(
+        fontFamily: 'Vazir',
+        color: Color(0xFFEEEEEE),
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
       ),
     ),
     inputDecorationTheme: InputDecorationTheme(
@@ -190,6 +221,7 @@ class AppTheme {
     iconTheme: IconThemeData(
       color: Colors.grey[200],
     ),
+    fontFamily: 'Vazir',
     scaffoldBackgroundColor: const Color(0xFF212121),
   );
 } 

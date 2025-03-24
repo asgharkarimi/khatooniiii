@@ -6,6 +6,7 @@ import 'package:khatooniiii/models/cargo.dart';
 import 'package:khatooniiii/models/customer.dart';
 import 'package:khatooniiii/utils/number_formatter.dart';
 import 'package:intl/intl.dart';
+import 'package:khatooniiii/utils/date_utils.dart';
 
 class PaymentForm extends StatefulWidget {
   final Payment? payment;
@@ -68,6 +69,32 @@ class _PaymentFormState extends State<PaymentForm> {
         } else {
           _selectedDate = picked;
         }
+      });
+    }
+  }
+
+  Future<void> _selectPaymentDate(BuildContext context) async {
+    final DateTime? picked = await AppDateUtils.showJalaliDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+    );
+    
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
+
+  Future<void> _selectCheckDueDate(BuildContext context) async {
+    final DateTime? picked = await AppDateUtils.showJalaliDatePicker(
+      context: context,
+      initialDate: _checkDueDate ?? DateTime.now().add(const Duration(days: 30)),
+    );
+    
+    if (picked != null) {
+      setState(() {
+        _checkDueDate = picked;
       });
     }
   }
@@ -201,37 +228,64 @@ class _PaymentFormState extends State<PaymentForm> {
                 const SizedBox(height: 16),
                 _buildPayerTypeDropdown(),
                 const SizedBox(height: 16),
-                GestureDetector(
-                  onTap: () => _selectDate(context, false),
-                  child: AbsorbPointer(
-                    child: TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: 'تاریخ پرداخت',
-                        border: OutlineInputBorder(),
-                        suffixIcon: Icon(Icons.calendar_today),
+                InkWell(
+                  onTap: () => _selectPaymentDate(context),
+                  child: InputDecorator(
+                    decoration: InputDecoration(
+                      labelText: 'تاریخ پرداخت',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      controller: TextEditingController(
-                        text: DateFormat('yyyy/MM/dd').format(_selectedDate),
-                      ),
+                      suffixIcon: const Icon(Icons.calendar_today),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          AppDateUtils.toPersianDate(_selectedDate),
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                        Text(
+                          AppDateUtils.getPersianWeekDay(_selectedDate),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
                 if (_selectedPaymentType == PaymentType.check) ...[
                   const SizedBox(height: 16),
-                  GestureDetector(
-                    onTap: () => _selectDate(context, true),
-                    child: AbsorbPointer(
-                      child: TextFormField(
-                        decoration: const InputDecoration(
-                          labelText: 'تاریخ سررسید چک',
-                          border: OutlineInputBorder(),
-                          suffixIcon: Icon(Icons.calendar_today),
+                  InkWell(
+                    onTap: () => _selectCheckDueDate(context),
+                    child: InputDecorator(
+                      decoration: InputDecoration(
+                        labelText: 'تاریخ سررسید چک',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        controller: TextEditingController(
-                          text: _checkDueDate == null
-                              ? ''
-                              : DateFormat('yyyy/MM/dd').format(_checkDueDate!),
-                        ),
+                        suffixIcon: const Icon(Icons.calendar_today),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            _checkDueDate != null
+                              ? AppDateUtils.toPersianDate(_checkDueDate!)
+                              : 'انتخاب تاریخ',
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                          if (_checkDueDate != null)
+                            Text(
+                              AppDateUtils.getPersianWeekDay(_checkDueDate!),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                   ),

@@ -7,6 +7,7 @@ import 'package:khatooniiii/models/driver.dart';
 import 'package:khatooniiii/models/vehicle.dart';
 import 'package:intl/intl.dart';
 import 'package:khatooniiii/utils/number_formatter.dart';
+import 'package:khatooniiii/utils/date_utils.dart';
 
 class CargoForm extends StatefulWidget {
   final Cargo? cargo;
@@ -29,6 +30,7 @@ class _CargoFormState extends State<CargoForm> {
   Driver? _selectedDriver;
   CargoType? _selectedCargoType;
   DateTime _selectedDate = DateTime.now();
+  TimeOfDay _selectedTime = TimeOfDay.now();
 
   bool _isLoading = false;
   String _errorMessage = '';
@@ -55,14 +57,13 @@ class _CargoFormState extends State<CargoForm> {
     super.dispose();
   }
 
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
+  Future<void> _selectDateTime(BuildContext context) async {
+    final DateTime? picked = await AppDateUtils.showJalaliDatePicker(
       context: context,
       initialDate: _selectedDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
     );
-    if (picked != null && picked != _selectedDate) {
+    
+    if (picked != null) {
       setState(() {
         _selectedDate = picked;
       });
@@ -294,19 +295,34 @@ class _CargoFormState extends State<CargoForm> {
                               },
                             ),
                             const SizedBox(height: 16),
-                            GestureDetector(
-                              onTap: () => _selectDate(context),
-                              child: AbsorbPointer(
-                                child: TextFormField(
-                                  decoration: InputDecoration(
-                                    labelText: 'تاریخ',
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    suffixIcon: const Icon(Icons.calendar_today),
+                            InkWell(
+                              onTap: () => _selectDateTime(context),
+                              child: InputDecorator(
+                                decoration: InputDecoration(
+                                  labelText: 'تاریخ',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
-                                  controller: TextEditingController(
-                                    text: DateFormat('yyyy/MM/dd').format(_selectedDate),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                  suffixIcon: const Icon(Icons.calendar_today),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        AppDateUtils.toPersianDate(_selectedDate),
+                                        style: const TextStyle(fontSize: 16),
+                                      ),
+                                      Text(
+                                        AppDateUtils.getPersianWeekDay(_selectedDate),
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
