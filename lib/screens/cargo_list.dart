@@ -963,9 +963,9 @@ class CargoList extends StatelessWidget {
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
@@ -991,9 +991,9 @@ class CargoList extends StatelessWidget {
                                 DateFormat('yyyy/MM/dd').format(payment.paymentDate),
                                 style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                               ),
-                            ],
-                          ),
-                        ),
+            ],
+          ),
+        ),
                       ],
                     );
                   },

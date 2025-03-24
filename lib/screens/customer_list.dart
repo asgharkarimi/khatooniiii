@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:khatooniiii/models/customer.dart';
 import 'package:khatooniiii/screens/customer_form.dart';
+import 'package:khatooniiii/widgets/float_button_style.dart';
 
 class CustomerList extends StatelessWidget {
   const CustomerList({super.key});
@@ -11,40 +12,68 @@ class CustomerList extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('لیست مشتریان'),
+        backgroundColor: Colors.blue[800],
+        foregroundColor: Colors.white,
       ),
       body: ValueListenableBuilder(
         valueListenable: Hive.box<Customer>('customers').listenable(),
-        builder: (context, box, child) {
+        builder: (context, Box<Customer> box, _) {
           if (box.isEmpty) {
             return const Center(
-              child: Text('هیچ مشتری ثبت نشده است'),
+              child: Text(
+                'هیچ مشتری‌ای ثبت نشده است',
+                style: TextStyle(fontSize: 18),
+              ),
             );
           }
 
+          final customers = box.values.toList();
+          
           return ListView.builder(
-            itemCount: box.length,
+            itemCount: customers.length,
             itemBuilder: (context, index) {
-              final customer = box.getAt(index);
-              return ListTile(
-                title: Text('${customer?.firstName} ${customer?.lastName}'),
-                subtitle: Text(customer?.phone ?? 'بدون شماره تماس'),
-                // می‌توانید اطلاعات بیشتری از مشتری را اینجا نمایش دهید
+              final customer = customers[index];
+              return Card(
+                margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: Colors.blue[100],
+                    child: Text(
+                      customer.firstName.isNotEmpty ? customer.firstName[0] : '?',
+                      style: TextStyle(color: Colors.blue[800]),
+                    ),
+                  ),
+                  title: Text('${customer.firstName} ${customer.lastName}'),
+                  subtitle: Text(customer.phone),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.edit),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CustomerForm(customer: customer),
+                        ),
+                      );
+                    },
+                  ),
+                ),
               );
             },
           );
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatButtonStyle(
+        label: 'افزودن مشتری جدید',
         onPressed: () {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const CustomerForm()),
           );
         },
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        icon: const Icon(Icons.add),
-        label: const Text('افزودن مشتری'),
+        icon: Icons.add,
+        tooltip: 'ثبت مشتری جدید',
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 } 

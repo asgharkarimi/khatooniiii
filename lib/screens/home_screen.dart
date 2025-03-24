@@ -12,24 +12,47 @@ import 'package:khatooniiii/screens/payment_list.dart';
 import 'package:khatooniiii/screens/expense_list.dart';
 import 'package:khatooniiii/screens/customer_list.dart';
 import 'package:khatooniiii/screens/reports/cargo_report_screen.dart';
+import 'package:khatooniiii/screens/settings_screen.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:khatooniiii/models/driver.dart';
 import 'package:khatooniiii/models/cargo.dart';
 import 'package:khatooniiii/models/payment.dart';
 import 'package:khatooniiii/models/expense.dart';
+import 'package:khatooniiii/providers/theme_provider.dart';
+import 'package:provider/provider.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    
     return Scaffold(
-      // appBar: AppBar(
-      //   //title: const Text('سامانه خاتون بار', style: TextStyle(fontWeight: FontWeight.bold)),
-      //   backgroundColor: Theme.of(context).colorScheme.primary,
-      //   foregroundColor: Theme.of(context).colorScheme.onPrimary,
-      //   elevation: 0,
-      // ),
+      appBar: AppBar(
+        title: const Text('سامانه خاتون'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: Icon(themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode),
+            tooltip: themeProvider.isDarkMode ? 'حالت روشن' : 'حالت تاریک',
+            onPressed: () {
+              themeProvider.toggleTheme();
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: 'تنظیمات',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsScreen()),
+              );
+            },
+          ),
+        ],
+      ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(

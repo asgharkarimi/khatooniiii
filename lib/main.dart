@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:khatooniiii/models/driver.dart';
 import 'package:khatooniiii/models/vehicle.dart';
@@ -8,8 +9,9 @@ import 'package:khatooniiii/models/cargo.dart';
 import 'package:khatooniiii/models/payment.dart';
 import 'package:khatooniiii/models/expense.dart';
 import 'package:khatooniiii/screens/home_screen.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'theme/app_theme.dart';
+import 'package:khatooniiii/theme/app_theme.dart';
+import 'package:khatooniiii/providers/theme_provider.dart';
+import 'package:provider/provider.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 
@@ -42,7 +44,17 @@ void main() async {
   // Run migration to ensure all Cargo objects have transportCostPerTon set
   await _migrateCargoObjects();
 
-  runApp(const MyApp());
+  // Set system UI overlay style
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+  ));
+
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 // مهاجرت داده‌های قدیمی برای اطمینان از اینکه همه اشیاء Cargo دارای مقدار پیش‌فرض برای transportCostPerTon هستند
@@ -131,29 +143,28 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'سامانه خاتون بار',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue,
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-        fontFamily: 'Vazir',
-      ),
-      themeMode: ThemeMode.system,
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [
-        Locale('fa', 'IR'),
-      ],
-      locale: const Locale('fa', 'IR'),
-      home: const HomeScreen(),
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, _) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'سامانه خاتون بار',
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: themeProvider.themeMode,
+          localizationsDelegates: const [
+            DefaultMaterialLocalizations.delegate,
+            DefaultWidgetsLocalizations.delegate,
+          ],
+          locale: const Locale('fa', 'IR'),
+          builder: (context, child) {
+            return Directionality(
+              textDirection: TextDirection.rtl,
+              child: child!,
+            );
+          },
+          home: const HomeScreen(),
+        );
+      },
     );
   }
 }

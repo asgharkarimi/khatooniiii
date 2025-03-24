@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:khatooniiii/models/expense.dart';
 import 'package:khatooniiii/screens/expense_form.dart';
+import 'package:khatooniiii/utils/number_formatter.dart';
 import 'package:intl/intl.dart';
+import 'package:khatooniiii/widgets/float_button_style.dart';
 import 'dart:io';
 
 class ExpenseList extends StatelessWidget {
@@ -12,162 +14,167 @@ class ExpenseList extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('هزینه‌ها'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+        title: const Text('لیست هزینه‌ها'),
+        backgroundColor: Colors.blue[800],
+        foregroundColor: Colors.white,
       ),
-      body: ValueListenableBuilder(
-        valueListenable: Hive.box<Expense>('expenses').listenable(),
-        builder: (context, expensesBox, _) {
-          if (expensesBox.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    'هنوز هیچ هزینه‌ای ثبت نشده است',
-                    style: TextStyle(fontSize: 18),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const ExpenseForm()),
-                      );
-                    },
-                    child: const Text('ثبت هزینه جدید'),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          // Sort expenses by date (newest first)
-          final expenses = expensesBox.values.toList()
-            ..sort((a, b) => b.date.compareTo(a.date));
-
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: expenses.length,
-            itemBuilder: (context, index) {
-              final expense = expenses[index];
-              final hasImage = expense.imagePath != null;
-              
-              return Card(
-                margin: const EdgeInsets.only(bottom: 16),
-                elevation: 2,
-                child: InkWell(
-                  onTap: () => _showExpenseDetails(context, expense),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Image preview if exists
-                      if (hasImage)
-                        Container(
-                          height: 120,
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(4),
-                              topRight: Radius.circular(4),
-                            ),
-                            image: DecorationImage(
-                              image: FileImage(File(expense.imagePath!)),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                      ListTile(
-                        title: Text(
-                          expense.title,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Text(
-                          '${expense.category} - ${DateFormat('yyyy/MM/dd').format(expense.date)}',
-                        ),
-                        trailing: Text(
-                          _formatAmount(expense.amount),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        leading: _getCategoryIcon(expense.category),
-                      ),
-                      // Show related cargo info if available
-                      if (expense.cargo != null)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.shade50,
-                              borderRadius: BorderRadius.circular(4),
-                              border: Border.all(color: Colors.blue.shade200),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.local_shipping, size: 14, color: Colors.blue.shade700),
-                                const SizedBox(width: 4),
-                                Flexible(
-                                  child: Text(
-                                    '${expense.cargo!.driver.name} - ${expense.cargo!.origin} به ${expense.cargo!.destination}',
-                                    style: TextStyle(fontSize: 12, color: Colors.blue.shade700),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            TextButton.icon(
-                              icon: const Icon(Icons.edit, size: 20),
-                              label: const Text('ویرایش'),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ExpenseForm(expense: expense),
-                                  ),
-                                );
-                              },
-                            ),
-                            const SizedBox(width: 8),
-                            TextButton.icon(
-                              icon: const Icon(Icons.delete, size: 20, color: Colors.red),
-                              label: const Text('حذف', style: TextStyle(color: Colors.red)),
-                              onPressed: () => _confirmDelete(context, expense, expensesBox),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
+      body: _buildExpenseList(),
+      floatingActionButton: FloatButtonStyle(
+        label: 'ثبت هزینه جدید',
         onPressed: () {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const ExpenseForm()),
           );
         },
-        icon: const Icon(Icons.add),
-        label: const Text('افزودن هزینه'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
+        icon: Icons.add,
+        tooltip: 'ثبت هزینه جدید',
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+    );
+  }
+
+  Widget _buildExpenseList() {
+    return ValueListenableBuilder(
+      valueListenable: Hive.box<Expense>('expenses').listenable(),
+      builder: (context, expensesBox, _) {
+        if (expensesBox.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  'هنوز هیچ هزینه‌ای ثبت نشده است',
+                  style: TextStyle(fontSize: 18),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const ExpenseForm()),
+                    );
+                  },
+                  child: const Text('ثبت هزینه جدید'),
+                ),
+              ],
+            ),
+          );
+        }
+
+        // Sort expenses by date (newest first)
+        final expenses = expensesBox.values.toList()
+          ..sort((a, b) => b.date.compareTo(a.date));
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: expenses.length,
+          itemBuilder: (context, index) {
+            final expense = expenses[index];
+            final hasImage = expense.imagePath != null;
+            
+            return Card(
+              margin: const EdgeInsets.only(bottom: 16),
+              elevation: 2,
+              child: InkWell(
+                onTap: () => _showExpenseDetails(context, expense),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Image preview if exists
+                    if (hasImage)
+                      Container(
+                        height: 120,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(4),
+                            topRight: Radius.circular(4),
+                          ),
+                          image: DecorationImage(
+                            image: FileImage(File(expense.imagePath!)),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    ListTile(
+                      title: Text(
+                        expense.title,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(
+                        '${expense.category} - ${DateFormat('yyyy/MM/dd').format(expense.date)}',
+                      ),
+                      trailing: Text(
+                        _formatAmount(expense.amount),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      leading: _getCategoryIcon(expense.category),
+                    ),
+                    // Show related cargo info if available
+                    if (expense.cargo != null)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade50,
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: Colors.blue.shade200),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.local_shipping, size: 14, color: Colors.blue.shade700),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: Text(
+                                  '${expense.cargo!.driver.name} - ${expense.cargo!.origin} به ${expense.cargo!.destination}',
+                                  style: TextStyle(fontSize: 12, color: Colors.blue.shade700),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton.icon(
+                            icon: const Icon(Icons.edit, size: 20),
+                            label: const Text('ویرایش'),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ExpenseForm(expense: expense),
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          TextButton.icon(
+                            icon: const Icon(Icons.delete, size: 20, color: Colors.red),
+                            label: const Text('حذف', style: TextStyle(color: Colors.red)),
+                            onPressed: () => _confirmDelete(context, expense, expensesBox),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 

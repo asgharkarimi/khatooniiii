@@ -9,6 +9,9 @@ import 'package:khatooniiii/models/expense.dart';
 import 'package:khatooniiii/utils/number_formatter.dart';
 import 'package:khatooniiii/screens/cargo_form.dart';
 import 'package:khatooniiii/screens/payment_form.dart';
+import 'package:khatooniiii/widgets/float_button_style.dart';
+import 'package:khatooniiii/screens/vehicle_list.dart';
+import 'package:khatooniiii/screens/driver_list.dart';
 
 // کلاس برای نگهداری محاسبات گزارش
 class ReportData {
@@ -104,7 +107,17 @@ class _CargoReportScreenState extends State<CargoReportScreen> with SingleTicker
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return FloatButtonScaffold.withFloatButton(
+      label: 'افزودن سرویس',
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const CargoForm()),
+        );
+      },
+      icon: Icons.add,
+      tooltip: 'افزودن سرویس بار جدید',
+      bottomMargin: 20,
       appBar: AppBar(
         title: const Text('گزارش سرویس‌های بار'),
         backgroundColor: Colors.blue[800],
@@ -156,17 +169,6 @@ class _CargoReportScreenState extends State<CargoReportScreen> with SingleTicker
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const CargoForm()),
-          );
-        },
-        tooltip: 'افزودن سرویس بار جدید',
-        child: const Icon(Icons.add),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: const SizedBox(height: 40),
     );
   }
@@ -239,8 +241,46 @@ class _CargoReportScreenState extends State<CargoReportScreen> with SingleTicker
                   ),
               ],
             ),
+            const SizedBox(height: 8),
+            const Divider(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildManagementButton(
+                  'مدیریت وسایل نقلیه',
+                  Icons.directions_car,
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const VehicleList()),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                _buildManagementButton(
+                  'مدیریت رانندگان',
+                  Icons.person,
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const DriverList()),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
+      ),
+    );
+  }
+  
+  // دکمه مدیریت
+  Widget _buildManagementButton(String label, IconData icon, VoidCallback onPressed) {
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 18),
+      label: Text(label, style: const TextStyle(fontSize: 12)),
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        backgroundColor: Colors.blue[800],
+        foregroundColor: Colors.white,
       ),
     );
   }
@@ -598,8 +638,27 @@ class _CargoReportScreenState extends State<CargoReportScreen> with SingleTicker
         final cargos = _getFilteredCargos(box);
         
         if (cargos.isEmpty) {
-          return const Center(
-            child: Text('هیچ سرویس باری در بازه انتخاب شده یافت نشد'),
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.search_off, size: 64, color: Colors.grey[400]),
+                const SizedBox(height: 16),
+                const Text(
+                  'هیچ سرویس باری در بازه انتخاب شده یافت نشد',
+                  style: TextStyle(fontSize: 18),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: _showFilterDialog,
+                  icon: const Icon(Icons.filter_alt),
+                  label: const Text('تغییر فیلترها'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  ),
+                ),
+              ],
+            ),
           );
         }
         
@@ -609,55 +668,108 @@ class _CargoReportScreenState extends State<CargoReportScreen> with SingleTicker
         return Column(
           children: [
             // کارت خلاصه
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              child: Card(
-                color: Colors.purple.shade50,
-                child: Padding(
-                  padding: const EdgeInsets.all(10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.insights, color: Colors.purple, size: 16),
-                          const SizedBox(width: 8),
-                          const Text(
-                            'خلاصه مالی',
-                            style: TextStyle(
+            Container(
+              margin: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade200),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.2),
+                    spreadRadius: 1,
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.purple.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(Icons.insights, color: Colors.purple, size: 18),
+                        ),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'خلاصه سرویس‌های بار',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: Colors.purple,
+                          ),
+                        ),
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.purple.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '${cargos.length} سرویس',
+                            style: const TextStyle(
+                              fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              fontSize: 14,
+                              color: Colors.purple,
                             ),
                           ),
-                          const Spacer(),
-                          Text(
-                            '${cargos.length} سرویس',
-                            style: const TextStyle(fontSize: 12),
-                          ),
-                        ],
-                      ),
-                      const Divider(),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          _buildSimpleSummaryColumn('ارزش کل', '${formatNumber(reportData.totalPriceSum)}', Colors.blue),
-                          _buildSimpleSummaryColumn('هزینه حمل', '${formatNumber(reportData.totalTransportCosts)}', Colors.red),
-                          _buildSimpleSummaryColumn('مجموع', '${formatNumber(reportData.totalAmount)}', Colors.purple),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Align(
-                        alignment: Alignment.center,
-                        child: Text(
-                          'مجموع = ارزش کل + هزینه حمل',
-                          style: TextStyle(fontSize: 9, color: Colors.grey[700]),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                    const Divider(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildSummaryColumn('ارزش کل', '${formatNumber(reportData.totalPriceSum)}', 
+                          Colors.blue, Icons.monetization_on),
+                        _buildSummaryColumn('هزینه حمل', '${formatNumber(reportData.totalTransportCosts)}', 
+                          Colors.red, Icons.local_shipping),
+                        _buildSummaryColumn('مجموع', '${formatNumber(reportData.totalAmount)}', 
+                          Colors.purple, Icons.account_balance_wallet),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ),
+            
+            // سورت و فیلتر سرویس‌ها
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+              child: Row(
+                children: [
+                  Text('${cargos.length} سرویس یافت شد',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.blue.shade200),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.sort, size: 14, color: Colors.blue),
+                        const SizedBox(width: 4),
+                        Text('ترتیب: تاریخ جدید', style: TextStyle(fontSize: 11, color: Colors.blue[700])),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
             // لیست سرویس‌ها
             Expanded(
               child: ListView.builder(
@@ -671,148 +783,230 @@ class _CargoReportScreenState extends State<CargoReportScreen> with SingleTicker
                   final totalAmount = cargo.totalPrice + cargo.totalTransportCost;
                   final remaining = totalAmount - totalPaid;
                   
-                  return Card(
-                    margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
-                    child: Padding(
-                      padding: const EdgeInsets.all(10.0),
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.2),
+                          spreadRadius: 1,
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Card(
+                      margin: EdgeInsets.zero,
+                      elevation: 0,
+                      clipBehavior: Clip.antiAlias,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      '${cargo.driver.name} - ${cargo.vehicle.vehicleName}',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Row(
-                                      children: [
-                                        Flexible(
-                                          child: Text(
-                                            '${cargo.origin} به ${cargo.destination}',
-                                            style: const TextStyle(fontSize: 12),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      '${DateFormat('yyyy/MM/dd').format(cargo.date)}',
-                                      style: TextStyle(color: Colors.grey[700], fontSize: 11),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text(
-                                    '${formatNumber(totalAmount)} تومان',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                      color: Colors.purple,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  _buildPaymentStatusBadge(remaining),
-                                ],
-                              ),
-                            ],
+                          // رنگ نمایشگر وضعیت
+                          Container(
+                            height: 4,
+                            color: remaining <= 0 ? Colors.green : Colors.red,
                           ),
-                          const SizedBox(height: 6),
-                          const Divider(height: 2),
-                          const SizedBox(height: 6),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Column(
+                          Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Row(
+                                    // بخش راننده و تاریخ
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          // بخش راننده و ماشین
+                                          Row(
+                                            children: [
+                                              Container(
+                                                padding: const EdgeInsets.all(6),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.blue.shade50,
+                                                  borderRadius: BorderRadius.circular(6),
+                                                ),
+                                                child: const Icon(Icons.person, size: 16, color: Colors.blue),
+                                              ),
+                                              const SizedBox(width: 6),
+                                              Flexible(
+                                                child: Text(
+                                                  '${cargo.driver.name}',
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 14,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 6),
+                                          // بخش مبدا و مقصد
+                                          Row(
+                                            children: [
+                                              Container(
+                                                padding: const EdgeInsets.all(6),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.amber.shade50,
+                                                  borderRadius: BorderRadius.circular(6),
+                                                ),
+                                                child: const Icon(Icons.location_on, size: 16, color: Colors.amber),
+                                              ),
+                                              const SizedBox(width: 6),
+                                              Flexible(
+                                                child: Text(
+                                                  '${cargo.origin} ➔ ${cargo.destination}',
+                                                  style: const TextStyle(fontSize: 12),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 6),
+                                          // بخش تاریخ
+                                          Row(
+                                            children: [
+                                              Container(
+                                                padding: const EdgeInsets.all(6),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.green.shade50,
+                                                  borderRadius: BorderRadius.circular(6),
+                                                ),
+                                                child: const Icon(Icons.calendar_today, size: 16, color: Colors.green),
+                                              ),
+                                              const SizedBox(width: 6),
+                                              Text(
+                                                '${DateFormat('yyyy/MM/dd').format(cargo.date)}',
+                                                style: TextStyle(color: Colors.grey[700], fontSize: 11),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    // بخش قیمت و وضعیت پرداخت
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.end,
                                       children: [
-                                        const Text('نوع بار: ', style: TextStyle(fontSize: 11)),
-                                        Flexible(
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                          decoration: BoxDecoration(
+                                            color: Colors.purple.shade50,
+                                            borderRadius: BorderRadius.circular(8),
+                                            border: Border.all(color: Colors.purple.shade200),
+                                          ),
                                           child: Text(
-                                            cargo.cargoType.cargoName, 
-                                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
+                                            '${formatNumber(totalAmount)} تومان',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14,
+                                              color: Colors.purple,
+                                            ),
                                           ),
                                         ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Row(
-                                      children: [
-                                        const Text('وزن: ', style: TextStyle(fontSize: 11)),
-                                        Text(
-                                          '${formatNumber(cargo.weight)} کیلوگرم', 
-                                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-                                        ),
+                                        const SizedBox(height: 8),
+                                        _buildPaymentStatusBadge(remaining),
                                       ],
                                     ),
                                   ],
                                 ),
-                              ),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                const Divider(height: 16),
+                                // بخش جزئیات مالی
+                                Row(
                                   children: [
-                                    Text(
-                                      'ارزش: ${formatNumber(cargo.totalPrice)} تومان',
-                                      style: const TextStyle(fontSize: 11, color: Colors.blue),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      'حمل: ${formatNumber(cargo.totalTransportCost)} تومان',
-                                      style: const TextStyle(fontSize: 11, color: Colors.red),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          'مجموع:',
-                                          style: const TextStyle(fontSize: 11, color: Colors.purple),
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          '${formatNumber(totalAmount)} تومان',
-                                          style: const TextStyle(
-                                            fontSize: 11,
-                                            color: Colors.purple,
-                                            fontWeight: FontWeight.bold,
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          // نوع بار و وزن
+                                          Row(
+                                            children: [
+                                              const Text('نوع بار: ', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                                              Flexible(
+                                                child: Text(
+                                                  cargo.cargoType.cargoName, 
+                                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                        ),
-                                      ],
+                                          const SizedBox(height: 4),
+                                          Row(
+                                            children: [
+                                              const Text('وزن: ', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                                              Text(
+                                                cargo.weight > 0 
+                                                  ? '${formatNumber(cargo.weight)} کیلوگرم'
+                                                  : 'مقطوع', 
+                                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      'سود: ${formatNumber(cargo.netProfit)} تومان',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: cargo.netProfit > 0 ? Colors.green : Colors.red,
-                                        fontWeight: FontWeight.bold,
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.end,
+                                        children: [
+                                          // جزئیات مالی
+                                          Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Container(
+                                                width: 8,
+                                                height: 8,
+                                                decoration: BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  color: Colors.blue,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                'ارزش: ${formatNumber(cargo.totalPrice)} تومان',
+                                                style: const TextStyle(fontSize: 11, color: Colors.blue),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Container(
+                                                width: 8,
+                                                height: 8,
+                                                decoration: BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  color: Colors.red,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                'حمل: ${formatNumber(cargo.totalTransportCost)} تومان',
+                                                style: const TextStyle(fontSize: 11, color: Colors.red),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ],
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -827,28 +1021,82 @@ class _CargoReportScreenState extends State<CargoReportScreen> with SingleTicker
     );
   }
   
-  // ستون خلاصه ساده برای کارت بالای لیست
-  Widget _buildSimpleSummaryColumn(String title, String value, Color color) {
-    return Column(
-      children: [
-        Text(
-          title, 
-          style: TextStyle(fontSize: 11, color: color),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+  // ستون خلاصه با گرادیانت
+  Widget _buildGradientSummaryColumn(String title, String value, List<Color> colors, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: colors,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-        const SizedBox(height: 2),
-        Text(
-          '$value تومان',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: color,
-            fontSize: 11,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 14, color: colors[0].withOpacity(0.8)),
+              const SizedBox(width: 4),
+              Text(
+                title, 
+                style: TextStyle(fontSize: 11, color: colors[0].withOpacity(0.8), fontWeight: FontWeight.bold),
+              ),
+            ],
           ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
+          const SizedBox(height: 4),
+          Text(
+            '$value تومان',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 11,
+              color: colors[0],
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+  
+  // ستون خلاصه ساده
+  Widget _buildSummaryColumn(String title, String value, Color color, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 14, color: color),
+              const SizedBox(width: 4),
+              Text(
+                title, 
+                style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '$value تومان',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 11,
+              color: color,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
     );
   }
 
@@ -937,44 +1185,22 @@ class _CargoReportScreenState extends State<CargoReportScreen> with SingleTicker
         ),
       );
     } else {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: Colors.red.shade100,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Text(
-              'بدهی: ${formatNumber(remaining)} تومان',
-              style: const TextStyle(
-                color: Colors.red,
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: Colors.red.shade100,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Text(
+          'بدهی: ${formatNumber(remaining)} تومان',
+          style: const TextStyle(
+            color: Colors.red,
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
           ),
-          const SizedBox(height: 2),
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade50,
-              border: Border.all(color: Colors.grey.shade200),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text(
-              'بدهی = قیمت سرویس + هزینه حمل',
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 8,
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          ),
-        ],
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
       );
     }
   }
@@ -1139,13 +1365,13 @@ class _CargoReportScreenState extends State<CargoReportScreen> with SingleTicker
                           ],
                         ),
                       ),
-                      _buildSummaryRow('مجموع کل (ارزش + هزینه):', '${formatNumber(reportData.totalAmount)} تومان', 
+                      _buildSummaryRow('بدهکاری کل:', '${formatNumber(reportData.totalAmount)} تومان', 
                         color: Colors.purple, 
                         fontSize: 14,
                         fontWeight: FontWeight.bold),
                       const SizedBox(height: 2),
                       Text(
-                        'مجموع کل = مجموع ارزش بار (${formatNumber(reportData.totalPriceSum)} تومان) + مجموع هزینه حمل (${formatNumber(reportData.totalTransportCosts)} تومان)',
+                        'بدهکاری = قیمت کل سرویس‌ها (${formatNumber(reportData.totalPriceSum)} تومان) + هزینه حمل کل (${formatNumber(reportData.totalTransportCosts)} تومان)',
                         style: TextStyle(fontSize: 10, color: Colors.grey[600]),
                       ),
                       const SizedBox(height: 8),
