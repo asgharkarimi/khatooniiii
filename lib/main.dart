@@ -9,6 +9,7 @@ import 'package:khatooniiii/models/cargo.dart';
 import 'package:khatooniiii/models/payment.dart';
 import 'package:khatooniiii/models/expense.dart';
 import 'package:khatooniiii/models/driver_salary.dart';
+import 'package:khatooniiii/models/driver_payment.dart';
 import 'package:khatooniiii/screens/home_screen.dart';
 import 'package:khatooniiii/theme/app_theme.dart';
 import 'package:khatooniiii/providers/theme_provider.dart';
@@ -35,6 +36,7 @@ void main() async {
   Hive.registerAdapter(PaymentAdapter());
   Hive.registerAdapter(ExpenseAdapter());
   Hive.registerAdapter(DriverSalaryAdapter());
+  Hive.registerAdapter(DriverPaymentAdapter());
 
   // Open Hive boxes
   await Hive.openBox<Driver>('drivers');
@@ -45,6 +47,7 @@ void main() async {
   await Hive.openBox<Payment>('payments');
   await Hive.openBox<Expense>('expenses');
   await Hive.openBox<DriverSalary>('driverSalaries');
+  await Hive.openBox<DriverPayment>('driverPayments');
 
   // Run migration to ensure all Cargo objects have transportCostPerTon set
   await _migrateCargoObjects();
@@ -126,7 +129,7 @@ Future<void> _resetHiveIfNeeded() async {
   final appDbDir = Directory('${appDocDir.path}/database_version.txt');
   
   // Current database version - increment this when schema changes
-  const currentVersion = '1.2';  // Updated for waybill fields
+  const currentVersion = '1.3';  // Updated for cargo_type fields
   
   try {
     if (await appDbDir.exists()) {
@@ -175,7 +178,7 @@ class MyApp extends StatelessWidget {
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {
           return MaterialApp(
-            title: 'سامانه خاتون بار',
+        
             debugShowCheckedModeBanner: false,
             localizationsDelegates: const [
               PersianMaterialLocalizations.delegate,

@@ -85,9 +85,10 @@ class _CargoTypeFormState extends State<CargoTypeForm> {
   void _submitForm() async {
     if (_formKey.currentState!.validate()) {
       try {
-        final cargoTypesBox = Hive.box<CargoType>('cargoTypes');
+        // Ensure the box is open and clear
+        final cargoTypesBox = await Hive.openBox<CargoType>('cargoTypes');
+        
         final cargoType = CargoType(
-          id: widget.cargoType?.id,
           cargoName: _cargoNameController.text.trim(),
         );
 
@@ -97,13 +98,19 @@ class _CargoTypeFormState extends State<CargoTypeForm> {
           await cargoTypesBox.add(cargoType);
         }
 
+        // Ensure data is written to disk
+        await cargoTypesBox.flush();
+
         if (mounted) {
           Navigator.pop(context);
         }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('خطا در ذخیره نوع سرویس بار: ${e.toString()}')),
-        );
+        print('Error saving cargo type: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('خطا در ذخیره نوع سرویس بار: ${e.toString()}')),
+          );
+        }
       }
     }
   }

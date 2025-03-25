@@ -6,7 +6,6 @@ import 'package:khatooniiii/models/cargo.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as path;
 import 'package:khatooniiii/utils/number_formatter.dart';
 
 class ExpenseForm extends StatefulWidget {
@@ -247,11 +246,11 @@ class _ExpenseFormState extends State<ExpenseForm> {
                       return DropdownMenuItem<Cargo>(
                         value: cargo,
                         child: Text(
-                          '${cargo.driver.name} - ${cargo.origin} به ${cargo.destination} (${date})',
+                          '${cargo.driver.name} - ${cargo.origin} به ${cargo.destination} ($date)',
                           overflow: TextOverflow.ellipsis,
                         ),
                       );
-                    }).toList(),
+                    }),
                   ],
                   onChanged: (Cargo? newValue) {
                     setState(() {

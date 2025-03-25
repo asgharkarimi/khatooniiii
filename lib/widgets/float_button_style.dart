@@ -8,19 +8,19 @@ class FloatButtonStyle extends StatelessWidget {
   final double bottomMargin;
 
   const FloatButtonStyle({
-    Key? key,
+    super.key,
     required this.label,
     required this.onPressed,
     required this.icon,
     this.tooltip,
     this.bottomMargin = 16,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(bottom: bottomMargin),
-      child: Container(
+      child: SizedBox(
         width: MediaQuery.of(context).size.width - 48,
         child: FloatingActionButton.extended(
           onPressed: onPressed,

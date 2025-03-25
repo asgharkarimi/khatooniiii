@@ -2,16 +2,25 @@ import 'package:hive/hive.dart';
 
 part 'cargo_type.g.dart';
 
-@HiveType(typeId: 2)
+@HiveType(typeId: 12)
 class CargoType extends HiveObject {
   @HiveField(0)
-  int? id;
+  final String cargoName;
 
   @HiveField(1)
-  String cargoName;
+  final DateTime createdAt;
+
+  @HiveField(2)
+  DateTime updatedAt;
 
   CargoType({
-    this.id,
     required this.cargoName,
-  });
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) : 
+    createdAt = createdAt ?? DateTime.now(),
+    updatedAt = updatedAt ?? DateTime.now();
+
+  @override
+  String toString() => cargoName;
 } 

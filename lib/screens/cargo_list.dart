@@ -1,15 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:khatooniiii/models/cargo.dart';
-import 'package:khatooniiii/models/payment.dart';
-import 'package:khatooniiii/models/expense.dart';
-import 'package:khatooniiii/screens/cargo_form.dart';
-import 'package:khatooniiii/screens/payment_form.dart';
-import 'package:khatooniiii/screens/expense_form.dart';
-import 'package:khatooniiii/utils/number_formatter.dart';
 import 'package:intl/intl.dart';
-import 'package:khatooniiii/screens/reports/cargo_report_screen.dart';
-import 'package:khatooniiii/models/driver.dart';
 
 class CargoList extends StatelessWidget {
   const CargoList({super.key});

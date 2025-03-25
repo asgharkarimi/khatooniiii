@@ -5,10 +5,8 @@ import 'package:khatooniiii/models/cargo.dart';
 import 'package:khatooniiii/models/driver.dart';
 import 'package:khatooniiii/models/payment.dart';
 import 'package:khatooniiii/models/customer.dart';
-import 'package:khatooniiii/models/expense.dart';
 import 'package:khatooniiii/utils/number_formatter.dart';
 import 'package:khatooniiii/screens/cargo_form.dart';
-import 'package:khatooniiii/screens/payment_form.dart';
 import 'package:khatooniiii/widgets/float_button_style.dart';
 import 'package:khatooniiii/screens/vehicle_list.dart';
 import 'package:khatooniiii/screens/driver_list.dart';
@@ -82,9 +80,9 @@ class _CargoReportScreenState extends State<CargoReportScreen> with SingleTicker
   String? _selectedOrigin;
   String? _selectedDestination;
   Customer? _selectedCustomer;
-  bool _onlyShowDebtors = false;
-  bool _sortByAmount = false;
-  bool _showProfitLossReport = false;
+  final bool _onlyShowDebtors = false;
+  final bool _sortByAmount = false;
+  final bool _showProfitLossReport = false;
   
   // فیلترهای فعال
   bool _showDateFilter = true;
@@ -729,11 +727,11 @@ class _CargoReportScreenState extends State<CargoReportScreen> with SingleTicker
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        _buildSummaryColumn('ارزش کل', '${formatNumber(reportData.totalPriceSum)}', 
+                        _buildSummaryColumn('ارزش کل', formatNumber(reportData.totalPriceSum), 
                           Colors.blue, Icons.monetization_on),
-                        _buildSummaryColumn('هزینه حمل', '${formatNumber(reportData.totalTransportCosts)}', 
+                        _buildSummaryColumn('هزینه حمل', formatNumber(reportData.totalTransportCosts), 
                           Colors.red, Icons.local_shipping),
-                        _buildSummaryColumn('مجموع', '${formatNumber(reportData.totalAmount)}', 
+                        _buildSummaryColumn('مجموع', formatNumber(reportData.totalAmount), 
                           Colors.purple, Icons.account_balance_wallet),
                       ],
                     ),
@@ -838,7 +836,7 @@ class _CargoReportScreenState extends State<CargoReportScreen> with SingleTicker
                                               const SizedBox(width: 6),
                                               Flexible(
                                                 child: Text(
-                                                  '${cargo.driver.name}',
+                                                  cargo.driver.name,
                                                   style: const TextStyle(
                                                     fontWeight: FontWeight.bold,
                                                     fontSize: 14,
@@ -886,7 +884,7 @@ class _CargoReportScreenState extends State<CargoReportScreen> with SingleTicker
                                               ),
                                               const SizedBox(width: 6),
                                               Text(
-                                                '${DateFormat('yyyy/MM/dd').format(cargo.date)}',
+                                                DateFormat('yyyy/MM/dd').format(cargo.date),
                                                 style: TextStyle(color: Colors.grey[700], fontSize: 11),
                                               ),
                                             ],

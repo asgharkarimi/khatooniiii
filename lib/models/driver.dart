@@ -38,6 +38,24 @@ class Driver extends HiveObject {
   @HiveField(10)
   String password;
 
+  @HiveField(11)
+  double salaryPercentage;
+
+  @HiveField(12)
+  String? bankAccountNumber;
+
+  @HiveField(13)
+  String? bankName;
+
+  @HiveField(14)
+  String? smartCardImagePath;
+
+  @HiveField(15)
+  String? vehicleSmartCardNumber;
+  
+  @HiveField(16)
+  String? vehicleHealthCode;
+
   Driver({
     String? id,
     required this.name,
@@ -49,7 +67,13 @@ class Driver extends HiveObject {
     String? firstName,
     String? lastName,
     this.licenseImagePath,
+    this.smartCardImagePath,
+    this.vehicleSmartCardNumber,
+    this.vehicleHealthCode,
     String? password,
+    this.salaryPercentage = 0,
+    this.bankAccountNumber,
+    this.bankName,
   }) : 
     id = id ?? const Uuid().v4(),
     firstName = firstName ?? name.split(' ').first,

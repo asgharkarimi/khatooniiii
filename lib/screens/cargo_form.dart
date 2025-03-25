@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:khatooniiii/models/cargo.dart';
 import 'package:khatooniiii/models/cargo_type.dart';
 import 'package:khatooniiii/models/driver.dart';
 import 'package:khatooniiii/models/vehicle.dart';
-import 'package:intl/intl.dart';
 import 'package:khatooniiii/utils/number_formatter.dart';
 import 'package:khatooniiii/utils/date_utils.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as path;
 
 class CargoForm extends StatefulWidget {
   final Cargo? cargo;
@@ -35,7 +32,8 @@ class _CargoFormState extends State<CargoForm> {
   Driver? _selectedDriver;
   CargoType? _selectedCargoType;
   DateTime _selectedDate = DateTime.now();
-  TimeOfDay _selectedTime = TimeOfDay.now();
+  DateTime? _selectedUnloadingDate;
+  final TimeOfDay _selectedTime = TimeOfDay.now();
   
   File? _selectedWaybillImage;
   String? _savedWaybillImagePath;
@@ -65,6 +63,7 @@ class _CargoFormState extends State<CargoForm> {
       _selectedDriver = widget.cargo!.driver;
       _selectedCargoType = widget.cargo!.cargoType;
       _selectedDate = widget.cargo!.date;
+      _selectedUnloadingDate = widget.cargo!.unloadingDate;
       _savedWaybillImagePath = widget.cargo!.waybillImagePath;
     }
   }
@@ -89,6 +88,19 @@ class _CargoFormState extends State<CargoForm> {
     if (picked != null) {
       setState(() {
         _selectedDate = picked;
+      });
+    }
+  }
+
+  Future<void> _selectUnloadingDate(BuildContext context) async {
+    final DateTime? picked = await AppDateUtils.showJalaliDatePicker(
+      context: context,
+      initialDate: _selectedUnloadingDate ?? DateTime.now(),
+    );
+    
+    if (picked != null) {
+      setState(() {
+        _selectedUnloadingDate = picked;
       });
     }
   }
@@ -137,6 +149,7 @@ class _CargoFormState extends State<CargoForm> {
           origin: _originController.text,
           destination: _destinationController.text,
           date: _selectedDate,
+          unloadingDate: _selectedUnloadingDate,
           weight: weight,
           pricePerTon: pricePerTon,
           paymentStatus: widget.cargo?.paymentStatus ?? PaymentStatus.pending,
@@ -154,6 +167,7 @@ class _CargoFormState extends State<CargoForm> {
           widget.cargo!.origin = cargo.origin;
           widget.cargo!.destination = cargo.destination;
           widget.cargo!.date = cargo.date;
+          widget.cargo!.unloadingDate = cargo.unloadingDate;
           widget.cargo!.weight = cargo.weight;
           widget.cargo!.pricePerTon = cargo.pricePerTon;
           widget.cargo!.transportCostPerTon = cargo.transportCostPerTon;
@@ -358,7 +372,7 @@ class _CargoFormState extends State<CargoForm> {
                               onTap: () => _selectDateTime(context),
                               child: InputDecorator(
                                 decoration: InputDecoration(
-                                  labelText: 'تاریخ',
+                                  labelText: 'تاریخ بارگیری',
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(8),
                                   ),
@@ -376,6 +390,43 @@ class _CargoFormState extends State<CargoForm> {
                                       ),
                                       Text(
                                         AppDateUtils.getPersianWeekDay(_selectedDate),
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            InkWell(
+                              onTap: () => _selectUnloadingDate(context),
+                              child: InputDecorator(
+                                decoration: InputDecoration(
+                                  labelText: 'تاریخ تخلیه',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                  suffixIcon: const Icon(Icons.calendar_today),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        _selectedUnloadingDate != null
+                                            ? AppDateUtils.toPersianDate(_selectedUnloadingDate!)
+                                            : 'انتخاب نشده',
+                                        style: const TextStyle(fontSize: 16),
+                                      ),
+                                      Text(
+                                        _selectedUnloadingDate != null
+                                            ? AppDateUtils.getPersianWeekDay(_selectedUnloadingDate!)
+                                            : '',
                                         style: TextStyle(
                                           fontSize: 12,
                                           color: Colors.grey[600],

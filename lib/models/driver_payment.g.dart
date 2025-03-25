@@ -1,39 +1,39 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'driver_salary.dart';
+part of 'driver_payment.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class DriverSalaryAdapter extends TypeAdapter<DriverSalary> {
+class DriverPaymentAdapter extends TypeAdapter<DriverPayment> {
   @override
-  final int typeId = 7;
+  final int typeId = 11;
 
   @override
-  DriverSalary read(BinaryReader reader) {
+  DriverPayment read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return DriverSalary(
+    return DriverPayment(
       id: fields[0] as String?,
       driver: fields[1] as Driver,
-      amount: fields[2] as double,
-      paymentDate: fields[3] as DateTime,
-      paymentMethod: fields[4] as int,
-      description: fields[5] as String?,
-      percentage: fields[7] as double?,
-      cargo: fields[8] as Cargo?,
-      calculatedSalary: fields[9] as double?,
-      totalPaidAmount: fields[10] as double?,
-      remainingAmount: fields[11] as double,
-      cargoId: fields[12] as int?,
-    )..createdAt = fields[6] as DateTime;
+      cargo: fields[2] as Cargo,
+      amount: fields[3] as double,
+      paymentDate: fields[4] as DateTime,
+      paymentMethod: fields[5] as int,
+      description: fields[6] as String?,
+      cargoId: fields[7] as int?,
+      calculatedSalary: fields[8] as double,
+      totalPaidAmount: fields[9] as double,
+      remainingAmount: fields[10] as double,
+      driverId: fields[12] as int?,
+    );
   }
 
   @override
-  void write(BinaryWriter writer, DriverSalary obj) {
+  void write(BinaryWriter writer, DriverPayment obj) {
     writer
       ..writeByte(13)
       ..writeByte(0)
@@ -41,27 +41,27 @@ class DriverSalaryAdapter extends TypeAdapter<DriverSalary> {
       ..writeByte(1)
       ..write(obj.driver)
       ..writeByte(2)
-      ..write(obj.amount)
-      ..writeByte(3)
-      ..write(obj.paymentDate)
-      ..writeByte(4)
-      ..write(obj.paymentMethod)
-      ..writeByte(5)
-      ..write(obj.description)
-      ..writeByte(6)
-      ..write(obj.createdAt)
-      ..writeByte(7)
-      ..write(obj.percentage)
-      ..writeByte(8)
       ..write(obj.cargo)
-      ..writeByte(9)
+      ..writeByte(3)
+      ..write(obj.amount)
+      ..writeByte(4)
+      ..write(obj.paymentDate)
+      ..writeByte(5)
+      ..write(obj.paymentMethod)
+      ..writeByte(6)
+      ..write(obj.description)
+      ..writeByte(7)
+      ..write(obj.cargoId)
+      ..writeByte(8)
       ..write(obj.calculatedSalary)
-      ..writeByte(10)
+      ..writeByte(9)
       ..write(obj.totalPaidAmount)
-      ..writeByte(11)
+      ..writeByte(10)
       ..write(obj.remainingAmount)
+      ..writeByte(11)
+      ..write(obj.createdAt)
       ..writeByte(12)
-      ..write(obj.cargoId);
+      ..write(obj.driverId);
   }
 
   @override
@@ -70,7 +70,7 @@ class DriverSalaryAdapter extends TypeAdapter<DriverSalary> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is DriverSalaryAdapter &&
+      other is DriverPaymentAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

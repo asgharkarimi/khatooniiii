@@ -27,14 +27,20 @@ class DriverAdapter extends TypeAdapter<Driver> {
       firstName: fields[7] as String?,
       lastName: fields[8] as String?,
       licenseImagePath: fields[9] as String?,
+      smartCardImagePath: fields[14] as String?,
+      vehicleSmartCardNumber: fields[15] as String?,
+      vehicleHealthCode: fields[16] as String?,
       password: fields[10] as String?,
+      salaryPercentage: fields[11] as double,
+      bankAccountNumber: fields[12] as String?,
+      bankName: fields[13] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Driver obj) {
     writer
-      ..writeByte(11)
+      ..writeByte(17)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -56,7 +62,19 @@ class DriverAdapter extends TypeAdapter<Driver> {
       ..writeByte(9)
       ..write(obj.licenseImagePath)
       ..writeByte(10)
-      ..write(obj.password);
+      ..write(obj.password)
+      ..writeByte(11)
+      ..write(obj.salaryPercentage)
+      ..writeByte(12)
+      ..write(obj.bankAccountNumber)
+      ..writeByte(13)
+      ..write(obj.bankName)
+      ..writeByte(14)
+      ..write(obj.smartCardImagePath)
+      ..writeByte(15)
+      ..write(obj.vehicleSmartCardNumber)
+      ..writeByte(16)
+      ..write(obj.vehicleHealthCode);
   }
 
   @override

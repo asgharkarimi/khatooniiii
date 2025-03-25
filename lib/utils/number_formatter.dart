@@ -74,8 +74,8 @@ double parseFormattedNumber(String formattedNumber) {
 }
 
 // Helper function to format a number to display with thousand separators
-String formatNumber(num number, {String separator = '.'}) {
-  if (number == 0) return '0';
+String formatNumber(num? number, {String separator = '.'}) {
+  if (number == null || number == 0) return '0';
   
   final formatted = NumberFormat('#,###').format(number);
   return formatted.replaceAll(',', separator);

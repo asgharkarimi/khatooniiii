@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:khatooniiii/models/customer.dart';
-import 'package:uuid/uuid.dart';
 
 class CustomerForm extends StatefulWidget {
   final Customer? customer;

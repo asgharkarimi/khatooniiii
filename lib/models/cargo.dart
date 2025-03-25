@@ -53,6 +53,9 @@ class Cargo extends HiveObject {
   @HiveField(12)
   String? waybillImagePath; // مسیر عکس بارنامه
 
+  @HiveField(13)
+  DateTime? unloadingDate; // تاریخ تخلیه
+
   Cargo({
     this.id,
     required this.vehicle,
@@ -61,6 +64,7 @@ class Cargo extends HiveObject {
     required this.origin,
     required this.destination,
     required this.date,
+    this.unloadingDate,
     required this.weight,
     required this.pricePerTon,
     this.paymentStatus = PaymentStatus.pending,

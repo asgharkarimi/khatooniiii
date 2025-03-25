@@ -49,6 +49,7 @@ class CargoAdapter extends TypeAdapter<Cargo> {
       origin: fields[4] as String,
       destination: fields[5] as String,
       date: fields[6] as DateTime,
+      unloadingDate: fields[13] as DateTime?,
       weight: fields[7] as double,
       pricePerTon: fields[8] as double,
       paymentStatus: fields[9] as int,
@@ -61,7 +62,7 @@ class CargoAdapter extends TypeAdapter<Cargo> {
   @override
   void write(BinaryWriter writer, Cargo obj) {
     writer
-      ..writeByte(13)
+      ..writeByte(14)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -87,7 +88,9 @@ class CargoAdapter extends TypeAdapter<Cargo> {
       ..writeByte(11)
       ..write(obj.waybillAmount)
       ..writeByte(12)
-      ..write(obj.waybillImagePath);
+      ..write(obj.waybillImagePath)
+      ..writeByte(13)
+      ..write(obj.unloadingDate);
   }
 
   @override

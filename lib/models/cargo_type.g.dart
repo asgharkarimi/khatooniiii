@@ -8,7 +8,7 @@ part of 'cargo_type.dart';
 
 class CargoTypeAdapter extends TypeAdapter<CargoType> {
   @override
-  final int typeId = 2;
+  final int typeId = 12;
 
   @override
   CargoType read(BinaryReader reader) {
@@ -17,19 +17,22 @@ class CargoTypeAdapter extends TypeAdapter<CargoType> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return CargoType(
-      id: fields[0] as int?,
-      cargoName: fields[1] as String,
+      cargoName: fields[0] as String,
+      createdAt: fields[1] as DateTime?,
+      updatedAt: fields[2] as DateTime?,
     );
   }
 
   @override
   void write(BinaryWriter writer, CargoType obj) {
     writer
-      ..writeByte(2)
+      ..writeByte(3)
       ..writeByte(0)
-      ..write(obj.id)
+      ..write(obj.cargoName)
       ..writeByte(1)
-      ..write(obj.cargoName);
+      ..write(obj.createdAt)
+      ..writeByte(2)
+      ..write(obj.updatedAt);
   }
 
   @override

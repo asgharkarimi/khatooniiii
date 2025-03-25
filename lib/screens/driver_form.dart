@@ -21,13 +21,20 @@ class _DriverFormState extends State<DriverForm> {
   final _nationalIdController = TextEditingController();
   final _phoneNumberController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _salaryPercentageController = TextEditingController();
+  final _bankAccountNumberController = TextEditingController();
+  final _bankNameController = TextEditingController();
+  final _vehicleSmartCardNumberController = TextEditingController();
+  final _vehicleHealthCodeController = TextEditingController();
   
   File? _selectedNationalCardImage;
   File? _selectedLicenseImage;
+  File? _selectedSmartCardImage;
   String? _savedNationalCardImagePath;
   String? _savedLicenseImagePath;
+  String? _savedSmartCardImagePath;
   bool _isLoading = false;
-  bool _obscurePassword = true;
+  final bool _obscurePassword = true;
 
   @override
   void initState() {
@@ -39,6 +46,12 @@ class _DriverFormState extends State<DriverForm> {
       _phoneNumberController.text = widget.driver!.mobile;
       _savedNationalCardImagePath = widget.driver!.imagePath;
       _savedLicenseImagePath = widget.driver!.licenseImagePath;
+      _savedSmartCardImagePath = widget.driver!.smartCardImagePath;
+      _salaryPercentageController.text = widget.driver!.salaryPercentage.toString();
+      _bankAccountNumberController.text = widget.driver!.bankAccountNumber ?? '';
+      _bankNameController.text = widget.driver!.bankName ?? '';
+      _vehicleSmartCardNumberController.text = widget.driver!.vehicleSmartCardNumber ?? '';
+      _vehicleHealthCodeController.text = widget.driver!.vehicleHealthCode ?? '';
     }
   }
 
@@ -49,10 +62,15 @@ class _DriverFormState extends State<DriverForm> {
     _nationalIdController.dispose();
     _phoneNumberController.dispose();
     _passwordController.dispose();
+    _salaryPercentageController.dispose();
+    _bankAccountNumberController.dispose();
+    _bankNameController.dispose();
+    _vehicleSmartCardNumberController.dispose();
+    _vehicleHealthCodeController.dispose();
     super.dispose();
   }
 
-  Future<void> _takePicture(bool isNationalCard) async {
+  Future<void> _takePicture(bool isNationalCard, [bool isSmartCard = false]) async {
     try {
       final pickedFile = await ImagePicker().pickImage(
         source: ImageSource.camera,
@@ -63,6 +81,8 @@ class _DriverFormState extends State<DriverForm> {
         setState(() {
           if (isNationalCard) {
             _selectedNationalCardImage = File(pickedFile.path);
+          } else if (isSmartCard) {
+            _selectedSmartCardImage = File(pickedFile.path);
           } else {
             _selectedLicenseImage = File(pickedFile.path);
           }
@@ -75,7 +95,7 @@ class _DriverFormState extends State<DriverForm> {
     }
   }
 
-  Future<void> _pickImage(bool isNationalCard) async {
+  Future<void> _pickImage(bool isNationalCard, [bool isSmartCard = false]) async {
     try {
       final pickedFile = await ImagePicker().pickImage(
         source: ImageSource.gallery,
@@ -86,6 +106,8 @@ class _DriverFormState extends State<DriverForm> {
         setState(() {
           if (isNationalCard) {
             _selectedNationalCardImage = File(pickedFile.path);
+          } else if (isSmartCard) {
+            _selectedSmartCardImage = File(pickedFile.path);
           } else {
             _selectedLicenseImage = File(pickedFile.path);
           }
@@ -129,6 +151,12 @@ class _DriverFormState extends State<DriverForm> {
           _savedLicenseImagePath, 
           'license'
         );
+        
+        final smartCardImagePath = await _saveImage(
+          _selectedSmartCardImage, 
+          _savedSmartCardImagePath, 
+          'smart_card'
+        );
 
         final driversBox = Hive.box<Driver>('drivers');
         final driver = Driver(
@@ -141,7 +169,13 @@ class _DriverFormState extends State<DriverForm> {
           licenseNumber: '',
           imagePath: nationalCardImagePath,
           licenseImagePath: licenseImagePath,
+          smartCardImagePath: smartCardImagePath,
           password: _passwordController.text,
+          salaryPercentage: double.tryParse(_salaryPercentageController.text) ?? 0,
+          bankAccountNumber: _bankAccountNumberController.text.isEmpty ? null : _bankAccountNumberController.text,
+          bankName: _bankNameController.text.isEmpty ? null : _bankNameController.text,
+          vehicleSmartCardNumber: _vehicleSmartCardNumberController.text.isEmpty ? null : _vehicleSmartCardNumberController.text,
+          vehicleHealthCode: _vehicleHealthCodeController.text.isEmpty ? null : _vehicleHealthCodeController.text,
         );
 
         if (widget.driver != null) {
@@ -255,6 +289,116 @@ class _DriverFormState extends State<DriverForm> {
                 ),
                 ElevatedButton.icon(
                   onPressed: () => _pickImage(isNationalCard),
+                  icon: const Icon(Icons.photo_library),
+                  label: const Text('گالری'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue[800],
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSmartCardImageSection() {
+    final imageFile = _selectedSmartCardImage;
+    final savedPath = _savedSmartCardImagePath;
+    final title = 'تصویر کارت هوشمند راننده';
+    
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              height: 180,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: Colors.grey[100],
+                border: Border.all(
+                  color: Colors.grey[300]!,
+                  width: 1.5,
+                ),
+              ),
+              child: Center(
+                child: imageFile != null || savedPath != null
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image(
+                          image: imageFile != null
+                              ? FileImage(imageFile) as ImageProvider
+                              : FileImage(File(savedPath!)),
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                        ),
+                      )
+                    : Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.credit_card,
+                            size: 60,
+                            color: Colors.grey[400],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'افزودن تصویر',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () => _takePicture(false, true),
+                  icon: const Icon(Icons.camera_alt),
+                  label: const Text('دوربین'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue[800],
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () => _pickImage(false, true),
                   icon: const Icon(Icons.photo_library),
                   label: const Text('گالری'),
                   style: ElevatedButton.styleFrom(
@@ -436,6 +580,148 @@ class _DriverFormState extends State<DriverForm> {
                     ),
                     const SizedBox(height: 16),
                     Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'درصد حقوق توافق شده',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              controller: _salaryPercentageController,
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                hintText: 'مثال: 30',
+                                suffixText: '%',
+                                border: OutlineInputBorder(),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'لطفا درصد حقوق را وارد کنید';
+                                }
+                                final number = double.tryParse(value);
+                                if (number == null || number < 0 || number > 100) {
+                                  return 'لطفا یک عدد بین 0 تا 100 وارد کنید';
+                                }
+                                return null;
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'اطلاعات بانکی',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              controller: _bankAccountNumberController,
+                              decoration: const InputDecoration(
+                                labelText: 'شماره کارت یا شماره شبا',
+                                border: OutlineInputBorder(),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'لطفا شماره حساب را وارد کنید';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              controller: _bankNameController,
+                              decoration: const InputDecoration(
+                                labelText: 'نام بانک',
+                                border: OutlineInputBorder(),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'لطفا نام بانک را وارد کنید';
+                                }
+                                return null;
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'اطلاعات خودرو',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              controller: _vehicleSmartCardNumberController,
+                              decoration: const InputDecoration(
+                                labelText: 'شماره هوشمند خودرو',
+                                border: OutlineInputBorder(),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'لطفا شماره هوشمند خودرو را وارد کنید';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              controller: _vehicleHealthCodeController,
+                              decoration: const InputDecoration(
+                                labelText: 'کد بهداشتی خودرو',
+                                border: OutlineInputBorder(),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'لطفا کد بهداشتی خودرو را وارد کنید';
+                                }
+                                return null;
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Card(
                       elevation: 2,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -446,6 +732,7 @@ class _DriverFormState extends State<DriverForm> {
                           children: [
                             _buildImageSection(true),
                             _buildImageSection(false),
+                            _buildSmartCardImageSection(),
                           ],
                         ),
                       ),
