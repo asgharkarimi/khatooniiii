@@ -47,6 +47,12 @@ class Cargo extends HiveObject {
   @HiveField(10)
   double transportCostPerTon; // هزینه حمل هر تن بر حسب تومان
 
+  @HiveField(11)
+  double? waybillAmount; // مبلغ بارنامه
+
+  @HiveField(12)
+  String? waybillImagePath; // مسیر عکس بارنامه
+
   Cargo({
     this.id,
     required this.vehicle,
@@ -59,6 +65,8 @@ class Cargo extends HiveObject {
     required this.pricePerTon,
     this.paymentStatus = PaymentStatus.pending,
     this.transportCostPerTon = 0, // Default value is 0
+    this.waybillAmount = 0, // Default value
+    this.waybillImagePath,
   });
 
   // وزن را به تن تبدیل می‌کند (هر تن = 1000 کیلوگرم)

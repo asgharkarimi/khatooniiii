@@ -8,6 +8,10 @@ import 'package:khatooniiii/models/vehicle.dart';
 import 'package:intl/intl.dart';
 import 'package:khatooniiii/utils/number_formatter.dart';
 import 'package:khatooniiii/utils/date_utils.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 
 class CargoForm extends StatefulWidget {
   final Cargo? cargo;
@@ -25,12 +29,16 @@ class _CargoFormState extends State<CargoForm> {
   final _weightController = TextEditingController();
   final _pricePerTonController = TextEditingController();
   final _transportCostPerTonController = TextEditingController();
+  final _waybillAmountController = TextEditingController();
 
   Vehicle? _selectedVehicle;
   Driver? _selectedDriver;
   CargoType? _selectedCargoType;
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
+  
+  File? _selectedWaybillImage;
+  String? _savedWaybillImagePath;
 
   bool _isLoading = false;
   String _errorMessage = '';
@@ -45,6 +53,20 @@ class _CargoFormState extends State<CargoForm> {
     _drivers = Hive.box<Driver>('drivers').values.toList();
     _vehicles = Hive.box<Vehicle>('vehicles').values.toList();
     _cargoTypes = Hive.box<CargoType>('cargoTypes').values.toList();
+    
+    if (widget.cargo != null) {
+      _originController.text = widget.cargo!.origin;
+      _destinationController.text = widget.cargo!.destination;
+      _weightController.text = widget.cargo!.weight.toString();
+      _pricePerTonController.text = widget.cargo!.pricePerTon.toString();
+      _transportCostPerTonController.text = widget.cargo!.transportCostPerTon.toString();
+      _waybillAmountController.text = widget.cargo!.waybillAmount?.toString() ?? '0';
+      _selectedVehicle = widget.cargo!.vehicle;
+      _selectedDriver = widget.cargo!.driver;
+      _selectedCargoType = widget.cargo!.cargoType;
+      _selectedDate = widget.cargo!.date;
+      _savedWaybillImagePath = widget.cargo!.waybillImagePath;
+    }
   }
 
   @override
@@ -54,6 +76,7 @@ class _CargoFormState extends State<CargoForm> {
     _weightController.dispose();
     _pricePerTonController.dispose();
     _transportCostPerTonController.dispose();
+    _waybillAmountController.dispose();
     super.dispose();
   }
 
@@ -70,67 +93,103 @@ class _CargoFormState extends State<CargoForm> {
     }
   }
 
-  void _submitForm() {
+  void _submitForm() async {
     if (_formKey.currentState!.validate()) {
-      // Default values for numeric fields
-      double pricePerTon = 0;
-      double weight = 0;
-      double transportCost = 0;
-
-      // Parse weight with proper null checking
-      if (_weightController.text.isNotEmpty) {
-        weight = parseFormattedNumber(_weightController.text);
-      }
-
-      // Parse price per ton with proper null checking
-      if (_pricePerTonController.text.isNotEmpty) {
-        pricePerTon = parseFormattedNumber(_pricePerTonController.text);
-      }
-
-      // Parse transport cost per ton with proper null checking
-      if (_transportCostPerTonController.text.isNotEmpty) {
-        transportCost = parseFormattedNumber(_transportCostPerTonController.text);
-      }
-
-      final cargo = Cargo(
-        id: widget.cargo?.id,
-        vehicle: _selectedVehicle!,
-        driver: _selectedDriver!,
-        cargoType: _selectedCargoType!,
-        origin: _originController.text,
-        destination: _destinationController.text,
-        date: _selectedDate,
-        weight: weight,
-        pricePerTon: pricePerTon,
-        paymentStatus: widget.cargo?.paymentStatus ?? PaymentStatus.pending,
-        transportCostPerTon: transportCost,
-      );
-
-      final cargosBox = Hive.box<Cargo>('cargos');
-      if (widget.cargo != null) {
-        // Editing existing cargo
-        widget.cargo!.vehicle = cargo.vehicle;
-        widget.cargo!.driver = cargo.driver;
-        widget.cargo!.cargoType = cargo.cargoType;
-        widget.cargo!.origin = cargo.origin;
-        widget.cargo!.destination = cargo.destination;
-        widget.cargo!.date = cargo.date;
-        widget.cargo!.weight = cargo.weight;
-        widget.cargo!.pricePerTon = cargo.pricePerTon;
-        widget.cargo!.transportCostPerTon = cargo.transportCostPerTon;
-        widget.cargo!.save();
+      setState(() {
+        _isLoading = true;
+      });
+      
+      try {
+        // Default values for numeric fields
+        double pricePerTon = 0;
+        double weight = 0;
+        double transportCost = 0;
+        double? waybillAmount;
+  
+        // Parse weight with proper null checking
+        if (_weightController.text.isNotEmpty) {
+          weight = parseFormattedNumber(_weightController.text);
+        }
+  
+        // Parse price per ton with proper null checking
+        if (_pricePerTonController.text.isNotEmpty) {
+          pricePerTon = parseFormattedNumber(_pricePerTonController.text);
+        }
+  
+        // Parse transport cost per ton with proper null checking
+        if (_transportCostPerTonController.text.isNotEmpty) {
+          transportCost = parseFormattedNumber(_transportCostPerTonController.text);
+        }
         
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('سرویس بار با موفقیت ویرایش شد')),
+        // Parse waybill amount with proper null checking
+        if (_waybillAmountController.text.isNotEmpty) {
+          waybillAmount = parseFormattedNumber(_waybillAmountController.text);
+        }
+        
+        // Save waybill image if selected
+        final waybillImagePath = await _saveWaybillImage();
+  
+        final cargo = Cargo(
+          id: widget.cargo?.id,
+          vehicle: _selectedVehicle!,
+          driver: _selectedDriver!,
+          cargoType: _selectedCargoType!,
+          origin: _originController.text,
+          destination: _destinationController.text,
+          date: _selectedDate,
+          weight: weight,
+          pricePerTon: pricePerTon,
+          paymentStatus: widget.cargo?.paymentStatus ?? PaymentStatus.pending,
+          transportCostPerTon: transportCost,
+          waybillAmount: waybillAmount,
+          waybillImagePath: waybillImagePath,
         );
-      } else {
-        // Adding new cargo
-        cargosBox.add(cargo);
+  
+        final cargosBox = Hive.box<Cargo>('cargos');
+        if (widget.cargo != null) {
+          // Editing existing cargo
+          widget.cargo!.vehicle = cargo.vehicle;
+          widget.cargo!.driver = cargo.driver;
+          widget.cargo!.cargoType = cargo.cargoType;
+          widget.cargo!.origin = cargo.origin;
+          widget.cargo!.destination = cargo.destination;
+          widget.cargo!.date = cargo.date;
+          widget.cargo!.weight = cargo.weight;
+          widget.cargo!.pricePerTon = cargo.pricePerTon;
+          widget.cargo!.transportCostPerTon = cargo.transportCostPerTon;
+          
+          // Handle waybillAmount with special care for existing records
+          try {
+            widget.cargo!.waybillAmount = cargo.waybillAmount;
+          } catch (e) {
+            // If the field doesn't exist in old records, this might fail
+            // We could recreate the cargo object with all fields or add a migration
+            // For now, we'll ignore this error silently
+          }
+          
+          widget.cargo!.waybillImagePath = cargo.waybillImagePath;
+          await widget.cargo!.save();
+          
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('سرویس بار با موفقیت ویرایش شد')),
+          );
+        } else {
+          // Adding new cargo
+          await cargosBox.add(cargo);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('سرویس بار با موفقیت ثبت شد')),
+          );
+        }
+        if (mounted) Navigator.pop(context);
+      } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('سرویس بار با موفقیت ثبت شد')),
+          SnackBar(content: Text('خطا: ${e.toString()}')),
         );
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
       }
-      Navigator.pop(context);
     }
   }
 
@@ -379,27 +438,128 @@ class _CargoFormState extends State<CargoForm> {
                                 ),
                               ),
                             ),
+                            const SizedBox(height: 16),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8.0),
+                              child: TextFormField(
+                                controller: _waybillAmountController,
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [ThousandsFormatter()],
+                                decoration: const InputDecoration(
+                                  labelText: 'مبلغ بارنامه به تومان',
+                                  hintText: 'مبلغ بارنامه را وارد کنید',
+                                  border: OutlineInputBorder(),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey.shade400),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'عکس بارنامه',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: ElevatedButton.icon(
+                                          onPressed: _takePicture,
+                                          icon: const Icon(Icons.camera_alt),
+                                          label: const Text('گرفتن عکس'),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.blue,
+                                            foregroundColor: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: ElevatedButton.icon(
+                                          onPressed: _pickImage,
+                                          icon: const Icon(Icons.photo_library),
+                                          label: const Text('از گالری'),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.green,
+                                            foregroundColor: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  if (_selectedWaybillImage != null)
+                                    Container(
+                                      height: 200,
+                                      width: double.infinity,
+                                      decoration: BoxDecoration(
+                                        border: Border.all(color: Colors.grey.shade400),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.file(
+                                          _selectedWaybillImage!,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    )
+                                  else if (_savedWaybillImagePath != null)
+                                    Container(
+                                      height: 200,
+                                      width: double.infinity,
+                                      decoration: BoxDecoration(
+                                        border: Border.all(color: Colors.grey.shade400),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.file(
+                                          File(_savedWaybillImagePath!),
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) => const Center(
+                                            child: Text('خطا در بارگذاری تصویر'),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
                       ),
                     ),
                     const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: _submitForm,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue[800],
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 30),
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: _submitForm,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue[800],
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            elevation: 2,
                           ),
-                          elevation: 2,
-                        ),
-                        child: Text(
-                          widget.cargo == null ? 'ثبت سرویس بار' : 'ذخیره تغییرات',
-                          style: const TextStyle(fontSize: 16),
+                          child: Text(
+                            widget.cargo == null ? 'ثبت سرویس بار' : 'ذخیره تغییرات',
+                            style: const TextStyle(fontSize: 16),
+                          ),
                         ),
                       ),
                     ),
@@ -443,6 +603,12 @@ class _CargoFormState extends State<CargoForm> {
               _selectedVehicle = value;
             });
           },
+          validator: (value) {
+            if (value == null) {
+              return 'لطفاً وسیله نقلیه را انتخاب کنید';
+            }
+            return null;
+          },
         );
       },
     );
@@ -480,6 +646,12 @@ class _CargoFormState extends State<CargoForm> {
             setState(() {
               _selectedDriver = value;
             });
+          },
+          validator: (value) {
+            if (value == null) {
+              return 'لطفاً راننده را انتخاب کنید';
+            }
+            return null;
           },
         );
       },
@@ -519,8 +691,68 @@ class _CargoFormState extends State<CargoForm> {
               _selectedCargoType = value;
             });
           },
+          validator: (value) {
+            if (value == null) {
+              return 'لطفاً نوع سرویس بار را انتخاب کنید';
+            }
+            return null;
+          },
         );
       },
     );
+  }
+
+  Future<void> _takePicture() async {
+    try {
+      final pickedFile = await ImagePicker().pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1800,
+        maxHeight: 1800,
+      );
+      if (pickedFile != null) {
+        setState(() {
+          _selectedWaybillImage = File(pickedFile.path);
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('خطا در دسترسی به دوربین: ${e.toString()}')),
+      );
+    }
+  }
+
+  Future<void> _pickImage() async {
+    try {
+      final pickedFile = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1800,
+        maxHeight: 1800,
+      );
+      if (pickedFile != null) {
+        setState(() {
+          _selectedWaybillImage = File(pickedFile.path);
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('خطا در دسترسی به گالری: ${e.toString()}')),
+      );
+    }
+  }
+
+  Future<String?> _saveWaybillImage() async {
+    if (_selectedWaybillImage == null) return _savedWaybillImagePath;
+    
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      final fileName = 'waybill_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final savedImage = await _selectedWaybillImage!.copy('${appDir.path}/$fileName');
+      return savedImage.path;
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('خطا در ذخیره عکس: ${e.toString()}')),
+      );
+      return null;
+    }
   }
 } 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:khatooniiii/screens/driver_form.dart';
+import 'package:khatooniiii/screens/driver_salary_list.dart';
 import 'package:khatooniiii/screens/vehicle_form.dart';
 import 'package:khatooniiii/screens/cargo_type_form.dart';
 import 'package:khatooniiii/screens/customer_form.dart';
@@ -13,6 +14,7 @@ import 'package:khatooniiii/screens/expense_list.dart';
 import 'package:khatooniiii/screens/customer_list.dart';
 import 'package:khatooniiii/screens/reports/cargo_report_screen.dart';
 import 'package:khatooniiii/screens/settings_screen.dart';
+import 'package:khatooniiii/screens/driver_salary_form.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:khatooniiii/models/driver.dart';
 import 'package:khatooniiii/models/cargo.dart';
@@ -20,6 +22,7 @@ import 'package:khatooniiii/models/payment.dart';
 import 'package:khatooniiii/models/expense.dart';
 import 'package:khatooniiii/providers/theme_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:khatooniiii/screens/cargo_list_with_salary.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -267,6 +270,12 @@ class HomeScreen extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const ExpenseForm()),
+        );
+      }),
+      _MenuItem('ثبت حقوق راننده', Icons.account_balance_wallet, () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const DriverSalaryList()),
         );
       }),
     ];

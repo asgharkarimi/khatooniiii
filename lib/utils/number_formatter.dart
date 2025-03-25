@@ -79,4 +79,15 @@ String formatNumber(num number, {String separator = '.'}) {
   
   final formatted = NumberFormat('#,###').format(number);
   return formatted.replaceAll(',', separator);
+}
+
+class NumberFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    // Implement your number formatting logic here
+    return newValue;
+  }
 } 

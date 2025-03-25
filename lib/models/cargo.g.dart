@@ -41,59 +41,27 @@ class CargoAdapter extends TypeAdapter<Cargo> {
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    
-    // Make sure all numeric fields have sensible defaults if missing or null
-    double weight = 0.0;
-    if (fields.containsKey(7)) {
-      final value = fields[7];
-      if (value is double) {
-        weight = value;
-      }
-    }
-    
-    double pricePerTon = 0.0;
-    if (fields.containsKey(8)) {
-      final value = fields[8];
-      if (value is double) {
-        pricePerTon = value;
-      }
-    }
-    
-    int paymentStatus = PaymentStatus.pending;
-    if (fields.containsKey(9)) {
-      final value = fields[9];
-      if (value is int) {
-        paymentStatus = value;
-      }
-    }
-    
-    double transportCost = 0.0;
-    if (fields.containsKey(10)) {
-      final value = fields[10];
-      if (value is double) {
-        transportCost = value;
-      }
-    }
-    
     return Cargo(
-      id: fields.containsKey(0) ? fields[0] as int? : null,
+      id: fields[0] as int?,
       vehicle: fields[1] as Vehicle,
       driver: fields[2] as Driver,
       cargoType: fields[3] as CargoType,
       origin: fields[4] as String,
       destination: fields[5] as String,
       date: fields[6] as DateTime,
-      weight: weight,
-      pricePerTon: pricePerTon,
-      paymentStatus: paymentStatus,
-      transportCostPerTon: transportCost,
+      weight: fields[7] as double,
+      pricePerTon: fields[8] as double,
+      paymentStatus: fields[9] as int,
+      transportCostPerTon: fields[10] as double,
+      waybillAmount: fields[11] as double?,
+      waybillImagePath: fields[12] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Cargo obj) {
     writer
-      ..writeByte(11)
+      ..writeByte(13)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -115,7 +83,11 @@ class CargoAdapter extends TypeAdapter<Cargo> {
       ..writeByte(9)
       ..write(obj.paymentStatus)
       ..writeByte(10)
-      ..write(obj.transportCostPerTon);
+      ..write(obj.transportCostPerTon)
+      ..writeByte(11)
+      ..write(obj.waybillAmount)
+      ..writeByte(12)
+      ..write(obj.waybillImagePath);
   }
 
   @override

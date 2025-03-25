@@ -8,6 +8,7 @@ import 'package:khatooniiii/models/customer.dart';
 import 'package:khatooniiii/models/cargo.dart';
 import 'package:khatooniiii/models/payment.dart';
 import 'package:khatooniiii/models/expense.dart';
+import 'package:khatooniiii/models/driver_salary.dart';
 import 'package:khatooniiii/screens/home_screen.dart';
 import 'package:khatooniiii/theme/app_theme.dart';
 import 'package:khatooniiii/providers/theme_provider.dart';
@@ -33,6 +34,7 @@ void main() async {
   Hive.registerAdapter(CargoAdapter());
   Hive.registerAdapter(PaymentAdapter());
   Hive.registerAdapter(ExpenseAdapter());
+  Hive.registerAdapter(DriverSalaryAdapter());
 
   // Open Hive boxes
   await Hive.openBox<Driver>('drivers');
@@ -42,6 +44,7 @@ void main() async {
   await Hive.openBox<Cargo>('cargos');
   await Hive.openBox<Payment>('payments');
   await Hive.openBox<Expense>('expenses');
+  await Hive.openBox<DriverSalary>('driverSalaries');
 
   // Run migration to ensure all Cargo objects have transportCostPerTon set
   await _migrateCargoObjects();
@@ -59,21 +62,24 @@ void main() async {
   );
 }
 
-// مهاجرت داده‌های قدیمی برای اطمینان از اینکه همه اشیاء Cargo دارای مقدار پیش‌فرض برای transportCostPerTon هستند
+// مهاجرت داده‌های قدیمی برای اطمینان از اینکه همه اشیاء Cargo دارای مقادیر پیش‌فرض برای فیلدهای جدید هستند
 Future<void> _migrateCargoObjects() async {
   final cargosBox = Hive.box<Cargo>('cargos');
   
   for (int i = 0; i < cargosBox.length; i++) {
     final cargo = cargosBox.getAt(i);
     
-    // If cargo exists, ensure transportCostPerTon is not null
     if (cargo != null) {
+      bool needsMigration = false;
+      
+      // Check for waybillAmount field
       try {
-        // Access the field to check if it causes an error
-        cargo.transportCostPerTon;
+        cargo.waybillAmount;
       } catch (e) {
-        // If there's an error, the field was null or didn't exist
-        // We need to replace the cargo object with a new one that includes the field
+        needsMigration = true;
+      }
+      
+      if (needsMigration) {
         final updatedCargo = Cargo(
           id: cargo.id,
           vehicle: cargo.vehicle,
@@ -85,13 +91,32 @@ Future<void> _migrateCargoObjects() async {
           weight: cargo.weight,
           pricePerTon: cargo.pricePerTon,
           paymentStatus: cargo.paymentStatus,
-          transportCostPerTon: 0, // Set default value
+          transportCostPerTon: _getTransportCostPerTon(cargo),
+          waybillAmount: _getWaybillAmount(cargo),
+          waybillImagePath: null,
         );
         
-        // Put the updated object back in the same position
         cargosBox.putAt(i, updatedCargo);
       }
     }
+  }
+}
+
+// Helper method to safely get transportCostPerTon from cargo
+double _getTransportCostPerTon(Cargo cargo) {
+  try {
+    return cargo.transportCostPerTon;
+  } catch (e) {
+    return 0;
+  }
+}
+
+// Helper method to safely get waybillAmount
+double? _getWaybillAmount(Cargo cargo) {
+  try {
+    return cargo.waybillAmount;
+  } catch (e) {
+    return 0;
   }
 }
 
@@ -101,7 +126,7 @@ Future<void> _resetHiveIfNeeded() async {
   final appDbDir = Directory('${appDocDir.path}/database_version.txt');
   
   // Current database version - increment this when schema changes
-  const currentVersion = '1.1';
+  const currentVersion = '1.2';  // Updated for waybill fields
   
   try {
     if (await appDbDir.exists()) {

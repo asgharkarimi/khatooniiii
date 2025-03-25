@@ -54,6 +54,7 @@ class AppDateUtils {
         builder: (context, child) {
           return Theme(
             data: ThemeData(
+              fontFamily: 'Vazir',
               colorScheme: ColorScheme.light(
                 primary: Theme.of(context).primaryColor,
                 onPrimary: Colors.white,
@@ -61,6 +62,11 @@ class AppDateUtils {
                 onSurface: Colors.black87,
               ),
               dialogBackgroundColor: Colors.white,
+              textTheme: const TextTheme(
+                titleLarge: TextStyle(fontFamily: 'Vazir', fontSize: 18, fontWeight: FontWeight.bold),
+                bodyLarge: TextStyle(fontFamily: 'Vazir', fontSize: 16),
+                bodyMedium: TextStyle(fontFamily: 'Vazir', fontSize: 14),
+              ),
               textButtonTheme: TextButtonThemeData(
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.white,
@@ -69,11 +75,16 @@ class AppDateUtils {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
+                  textStyle: const TextStyle(
+                    fontFamily: 'Vazir',
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
+              padding: const EdgeInsets.all(10.0),
               child: Container(
                 padding: const EdgeInsets.all(10.0),
                 decoration: BoxDecoration(
@@ -161,5 +172,10 @@ class AppDateUtils {
     // Convert Jalali weekDay to correct index (Saturday = 0)
     int weekDayIndex = (jDate.weekDay + 1) % 7;
     return weekDays[weekDayIndex];
+  }
+
+  static String formatJalaliDate(DateTime date) {
+    final jDate = Jalali.fromDateTime(date);
+    return '${jDate.year}/${jDate.month}/${jDate.day}';
   }
 } 
