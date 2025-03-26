@@ -50,12 +50,6 @@ class Driver extends HiveObject {
   @HiveField(14)
   String? smartCardImagePath;
 
-  @HiveField(15)
-  String? vehicleSmartCardNumber;
-  
-  @HiveField(16)
-  String? vehicleHealthCode;
-
   Driver({
     String? id,
     required this.name,
@@ -68,8 +62,6 @@ class Driver extends HiveObject {
     String? lastName,
     this.licenseImagePath,
     this.smartCardImagePath,
-    this.vehicleSmartCardNumber,
-    this.vehicleHealthCode,
     String? password,
     this.salaryPercentage = 0,
     this.bankAccountNumber,

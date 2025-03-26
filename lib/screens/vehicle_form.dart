@@ -14,13 +14,25 @@ class VehicleForm extends StatefulWidget {
 class _VehicleFormState extends State<VehicleForm> {
   final _formKey = GlobalKey<FormState>();
   final _vehicleNameController = TextEditingController();
+  final _smartCardNumberController = TextEditingController();
+  final _healthCodeController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     if (widget.vehicle != null) {
       _vehicleNameController.text = widget.vehicle!.vehicleName;
+      _smartCardNumberController.text = widget.vehicle!.smartCardNumber ?? '';
+      _healthCodeController.text = widget.vehicle!.healthCode ?? '';
     }
+  }
+
+  @override
+  void dispose() {
+    _vehicleNameController.dispose();
+    _smartCardNumberController.dispose();
+    _healthCodeController.dispose();
+    super.dispose();
   }
 
   @override
@@ -51,6 +63,34 @@ class _VehicleFormState extends State<VehicleForm> {
                 },
               ),
               const SizedBox(height: 16),
+              TextFormField(
+                controller: _smartCardNumberController,
+                decoration: const InputDecoration(
+                  labelText: 'شماره هوشمند خودرو',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'لطفاً شماره هوشمند خودرو را وارد کنید';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _healthCodeController,
+                decoration: const InputDecoration(
+                  labelText: 'کد بهداشتی خودرو',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'لطفاً کد بهداشتی خودرو را وارد کنید';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _submitForm,
                 style: ElevatedButton.styleFrom(
@@ -77,6 +117,8 @@ class _VehicleFormState extends State<VehicleForm> {
         final vehicle = Vehicle(
           id: widget.vehicle?.id,
           vehicleName: _vehicleNameController.text.trim(),
+          smartCardNumber: _smartCardNumberController.text.trim(),
+          healthCode: _healthCodeController.text.trim(),
         );
 
         if (widget.vehicle != null) {

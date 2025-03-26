@@ -378,7 +378,13 @@ class _DriverSalaryFormState extends State<DriverSalaryForm> {
                             ),
                             const SizedBox(height: 8),
                             _buildCalculationRow(
-                              'باقی‌مانده',
+                              'مجموع پرداختی‌ها',
+                              _calculatePreviousPayments(),
+                              isTotal: true,
+                            ),
+                            const SizedBox(height: 8),
+                            _buildCalculationRow(
+                              'مجموع بدهکاری',
                               _calculatedSalary - _calculatePreviousPayments(),
                               isTotal: true,
                             ),

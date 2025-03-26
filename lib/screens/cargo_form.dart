@@ -442,8 +442,6 @@ class _CargoFormState extends State<CargoForm> {
                               controller: _weightController,
                               decoration: InputDecoration(
                                 labelText: 'وزن (کیلوگرم)',
-                                hintText: 'برای محاسبه مقطوع، وزن را صفر وارد کنید',
-                                helperText: 'وزن صفر به معنای محاسبه مقطوع است',
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
@@ -454,7 +452,7 @@ class _CargoFormState extends State<CargoForm> {
                               ],
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'لطفاً وزن را وارد کنید (برای محاسبه مقطوع، مقدار 0 وارد کنید)';
+                                  return 'لطفاً وزن را وارد کنید';
                                 }
                                 return null;
                               },
@@ -468,8 +466,6 @@ class _CargoFormState extends State<CargoForm> {
                                 inputFormatters: [ThousandsFormatter()],
                                 decoration: const InputDecoration(
                                   labelText: 'قیمت هر تن بار به تومان',
-                                  hintText: 'برای وزن صفر، این مقدار قیمت کل خواهد بود',
-                                  helperText: 'در صورت وزن صفر، مقدار کل را وارد کنید',
                                   border: OutlineInputBorder(),
                                 ),
                               ),
@@ -483,8 +479,6 @@ class _CargoFormState extends State<CargoForm> {
                                 inputFormatters: [ThousandsFormatter()],
                                 decoration: const InputDecoration(
                                   labelText: 'هزینه حمل هر تن بار به تومان',
-                                  hintText: 'برای وزن صفر، این مقدار هزینه کل خواهد بود',
-                                  helperText: 'در صورت وزن صفر، هزینه کل را وارد کنید (اختیاری)',
                                   border: OutlineInputBorder(),
                                 ),
                               ),

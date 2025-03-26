@@ -24,8 +24,6 @@ class _DriverFormState extends State<DriverForm> {
   final _salaryPercentageController = TextEditingController();
   final _bankAccountNumberController = TextEditingController();
   final _bankNameController = TextEditingController();
-  final _vehicleSmartCardNumberController = TextEditingController();
-  final _vehicleHealthCodeController = TextEditingController();
   
   File? _selectedNationalCardImage;
   File? _selectedLicenseImage;
@@ -50,8 +48,6 @@ class _DriverFormState extends State<DriverForm> {
       _salaryPercentageController.text = widget.driver!.salaryPercentage.toString();
       _bankAccountNumberController.text = widget.driver!.bankAccountNumber ?? '';
       _bankNameController.text = widget.driver!.bankName ?? '';
-      _vehicleSmartCardNumberController.text = widget.driver!.vehicleSmartCardNumber ?? '';
-      _vehicleHealthCodeController.text = widget.driver!.vehicleHealthCode ?? '';
     }
   }
 
@@ -65,8 +61,6 @@ class _DriverFormState extends State<DriverForm> {
     _salaryPercentageController.dispose();
     _bankAccountNumberController.dispose();
     _bankNameController.dispose();
-    _vehicleSmartCardNumberController.dispose();
-    _vehicleHealthCodeController.dispose();
     super.dispose();
   }
 
@@ -174,8 +168,6 @@ class _DriverFormState extends State<DriverForm> {
           salaryPercentage: double.tryParse(_salaryPercentageController.text) ?? 0,
           bankAccountNumber: _bankAccountNumberController.text.isEmpty ? null : _bankAccountNumberController.text,
           bankName: _bankNameController.text.isEmpty ? null : _bankNameController.text,
-          vehicleSmartCardNumber: _vehicleSmartCardNumberController.text.isEmpty ? null : _vehicleSmartCardNumberController.text,
-          vehicleHealthCode: _vehicleHealthCodeController.text.isEmpty ? null : _vehicleHealthCodeController.text,
         );
 
         if (widget.driver != null) {
@@ -312,10 +304,6 @@ class _DriverFormState extends State<DriverForm> {
   }
 
   Widget _buildSmartCardImageSection() {
-    final imageFile = _selectedSmartCardImage;
-    final savedPath = _savedSmartCardImagePath;
-    final title = 'تصویر کارت هوشمند راننده';
-    
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -326,9 +314,9 @@ class _DriverFormState extends State<DriverForm> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: const TextStyle(
+            const Text(
+              'تصویر کارت هوشمند راننده',
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -346,13 +334,13 @@ class _DriverFormState extends State<DriverForm> {
                 ),
               ),
               child: Center(
-                child: imageFile != null || savedPath != null
+                child: _selectedSmartCardImage != null || _savedSmartCardImagePath != null
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(10),
                         child: Image(
-                          image: imageFile != null
-                              ? FileImage(imageFile) as ImageProvider
-                              : FileImage(File(savedPath!)),
+                          image: _selectedSmartCardImage != null
+                              ? FileImage(_selectedSmartCardImage!) as ImageProvider
+                              : FileImage(File(_savedSmartCardImagePath!)),
                           fit: BoxFit.cover,
                           width: double.infinity,
                         ),
@@ -568,9 +556,6 @@ class _DriverFormState extends State<DriverForm> {
                                 if (widget.driver == null && (value == null || value.isEmpty)) {
                                   return 'لطفاً رمز عبور را وارد کنید';
                                 }
-                                if (value != null && value.isNotEmpty && value.length < 6) {
-                                  return 'رمز عبور باید حداقل 6 کاراکتر باشد';
-                                }
                                 return null;
                               },
                             ),
@@ -590,7 +575,7 @@ class _DriverFormState extends State<DriverForm> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
-                              'درصد حقوق توافق شده',
+                              'درصد حقوق',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -599,12 +584,12 @@ class _DriverFormState extends State<DriverForm> {
                             const SizedBox(height: 12),
                             TextFormField(
                               controller: _salaryPercentageController,
-                              keyboardType: TextInputType.number,
                               decoration: const InputDecoration(
-                                hintText: 'مثال: 30',
-                                suffixText: '%',
+                                labelText: 'درصد حقوق (بین 0 تا 100)',
                                 border: OutlineInputBorder(),
+                                suffixText: '%',
                               ),
+                              keyboardType: TextInputType.number,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'لطفا درصد حقوق را وارد کنید';
@@ -662,56 +647,6 @@ class _DriverFormState extends State<DriverForm> {
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'لطفا نام بانک را وارد کنید';
-                                }
-                                return null;
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'اطلاعات خودرو',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            TextFormField(
-                              controller: _vehicleSmartCardNumberController,
-                              decoration: const InputDecoration(
-                                labelText: 'شماره هوشمند خودرو',
-                                border: OutlineInputBorder(),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'لطفا شماره هوشمند خودرو را وارد کنید';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 12),
-                            TextFormField(
-                              controller: _vehicleHealthCodeController,
-                              decoration: const InputDecoration(
-                                labelText: 'کد بهداشتی خودرو',
-                                border: OutlineInputBorder(),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'لطفا کد بهداشتی خودرو را وارد کنید';
                                 }
                                 return null;
                               },
