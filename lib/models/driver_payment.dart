@@ -29,7 +29,7 @@ class DriverPayment extends HiveObject {
   final String? description;
 
   @HiveField(7)
-  final int? cargoId;
+  String? cargoId; // Changed from int? to String? to match Cargo.key type
 
   @HiveField(8)
   final double calculatedSalary; // حقوق محاسبه شده کل
@@ -44,7 +44,7 @@ class DriverPayment extends HiveObject {
   final DateTime createdAt;
 
   @HiveField(12)
-  final int? driverId;
+  String? driverId; // Changed from int? to String? to match Driver.key type
 
   DriverPayment({
     String? id,
@@ -54,14 +54,17 @@ class DriverPayment extends HiveObject {
     required this.paymentDate,
     required this.paymentMethod,
     this.description,
-    this.cargoId,
+    String? cargoId,
     required this.calculatedSalary,
     required this.totalPaidAmount,
     required this.remainingAmount,
-    this.driverId,
+    String? driverId,
   }) : 
     id = id ?? const Uuid().v4(),
-    createdAt = DateTime.now();
+    createdAt = DateTime.now(),
+    // Set default values for cargoId and driverId if not provided
+    cargoId = cargoId ?? cargo.key,
+    driverId = driverId ?? driver.key;
 }
 
 // Payment method constants

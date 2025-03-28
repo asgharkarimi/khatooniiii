@@ -46,7 +46,7 @@ class DriverSalary extends HiveObject {
   double remainingAmount;
 
   @HiveField(12)
-  int? cargoId;
+  String? cargoId;
 
   DriverSalary({
     String? id,
@@ -60,10 +60,11 @@ class DriverSalary extends HiveObject {
     this.calculatedSalary,
     this.totalPaidAmount,
     this.remainingAmount = 0.0,
-    this.cargoId,
+    String? cargoId,
   }) : 
     id = id ?? const Uuid().v4(),
-    createdAt = DateTime.now();
+    createdAt = DateTime.now(),
+    cargoId = cargoId ?? cargo?.key;
 
   // Add method to check if salary is for a specific cargo
   bool isForCargo(Cargo cargo) {

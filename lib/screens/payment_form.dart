@@ -6,6 +6,7 @@ import 'package:khatooniiii/models/customer.dart';
 import 'package:khatooniiii/utils/number_formatter.dart';
 import 'package:intl/intl.dart';
 import 'package:khatooniiii/utils/date_utils.dart';
+import 'package:khatooniiii/widgets/persian_date_picker.dart';
 
 class PaymentForm extends StatefulWidget {
   final Payment? payment;
@@ -51,51 +52,6 @@ class _PaymentFormState extends State<PaymentForm> {
   void dispose() {
     _amountController.dispose();
     super.dispose();
-  }
-
-  Future<void> _selectDate(BuildContext context, bool isCheckDueDate) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: isCheckDueDate ? (_checkDueDate ?? DateTime.now()) : _selectedDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
-    );
-    
-    if (picked != null) {
-      setState(() {
-        if (isCheckDueDate) {
-          _checkDueDate = picked;
-        } else {
-          _selectedDate = picked;
-        }
-      });
-    }
-  }
-
-  Future<void> _selectPaymentDate(BuildContext context) async {
-    final DateTime? picked = await AppDateUtils.showJalaliDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-    );
-    
-    if (picked != null && picked != _selectedDate) {
-      setState(() {
-        _selectedDate = picked;
-      });
-    }
-  }
-
-  Future<void> _selectCheckDueDate(BuildContext context) async {
-    final DateTime? picked = await AppDateUtils.showJalaliDatePicker(
-      context: context,
-      initialDate: _checkDueDate ?? DateTime.now().add(const Duration(days: 30)),
-    );
-    
-    if (picked != null) {
-      setState(() {
-        _checkDueDate = picked;
-      });
-    }
   }
 
   void _submitForm() async {
@@ -227,66 +183,29 @@ class _PaymentFormState extends State<PaymentForm> {
                 const SizedBox(height: 16),
                 _buildPayerTypeDropdown(),
                 const SizedBox(height: 16),
-                InkWell(
-                  onTap: () => _selectPaymentDate(context),
-                  child: InputDecorator(
-                    decoration: InputDecoration(
-                      labelText: 'تاریخ پرداخت',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      suffixIcon: const Icon(Icons.calendar_today),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          AppDateUtils.toPersianDate(_selectedDate),
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                        Text(
-                          AppDateUtils.getPersianWeekDay(_selectedDate),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                PersianDatePicker(
+                  selectedDate: _selectedDate,
+                  onDateChanged: (date) {
+                    setState(() {
+                      _selectedDate = date;
+                    });
+                  },
+                  labelText: 'تاریخ پرداخت',
+                  prefixIcon: Icon(Icons.calendar_today),
+                  showWeekDay: true,
                 ),
                 if (_selectedPaymentType == PaymentType.check) ...[
                   const SizedBox(height: 16),
-                  InkWell(
-                    onTap: () => _selectCheckDueDate(context),
-                    child: InputDecorator(
-                      decoration: InputDecoration(
-                        labelText: 'تاریخ سررسید چک',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        suffixIcon: const Icon(Icons.calendar_today),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            _checkDueDate != null
-                              ? AppDateUtils.toPersianDate(_checkDueDate!)
-                              : 'انتخاب تاریخ',
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                          if (_checkDueDate != null)
-                            Text(
-                              AppDateUtils.getPersianWeekDay(_checkDueDate!),
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
+                  PersianDatePicker(
+                    selectedDate: _checkDueDate ?? DateTime.now().add(const Duration(days: 30)),
+                    onDateChanged: (date) {
+                      setState(() {
+                        _checkDueDate = date;
+                      });
+                    },
+                    labelText: 'تاریخ سررسید چک',
+                    prefixIcon: Icon(Icons.calendar_today),
+                    showWeekDay: true,
                   ),
                 ],
                 const SizedBox(height: 16),

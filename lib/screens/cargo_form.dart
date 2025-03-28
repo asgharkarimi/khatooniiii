@@ -9,6 +9,7 @@ import 'package:khatooniiii/utils/date_utils.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
+import 'package:khatooniiii/widgets/persian_date_picker.dart';
 
 class CargoForm extends StatefulWidget {
   final Cargo? cargo;
@@ -79,32 +80,6 @@ class _CargoFormState extends State<CargoForm> {
     super.dispose();
   }
 
-  Future<void> _selectDateTime(BuildContext context) async {
-    final DateTime? picked = await AppDateUtils.showJalaliDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-    );
-    
-    if (picked != null) {
-      setState(() {
-        _selectedDate = picked;
-      });
-    }
-  }
-
-  Future<void> _selectUnloadingDate(BuildContext context) async {
-    final DateTime? picked = await AppDateUtils.showJalaliDatePicker(
-      context: context,
-      initialDate: _selectedUnloadingDate ?? DateTime.now(),
-    );
-    
-    if (picked != null) {
-      setState(() {
-        _selectedUnloadingDate = picked;
-      });
-    }
-  }
-
   void _submitForm() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -141,8 +116,23 @@ class _CargoFormState extends State<CargoForm> {
         // Save waybill image if selected
         final waybillImagePath = await _saveWaybillImage();
   
+        // Get next cargo ID if creating a new cargo
+        int? cargoId = widget.cargo?.id;
+        if (cargoId == null) {
+          final cargosBox = Hive.box<Cargo>('cargos');
+          // Find the highest current ID
+          int maxId = 0;
+          for (int i = 0; i < cargosBox.length; i++) {
+            final cargo = cargosBox.getAt(i);
+            if (cargo != null && cargo.id != null && cargo.id! > maxId) {
+              maxId = cargo.id!;
+            }
+          }
+          cargoId = maxId + 1;
+        }
+  
         final cargo = Cargo(
-          id: widget.cargo?.id,
+          id: cargoId,
           vehicle: _selectedVehicle!,
           driver: _selectedDriver!,
           cargoType: _selectedCargoType!,
@@ -368,74 +358,34 @@ class _CargoFormState extends State<CargoForm> {
                               },
                             ),
                             const SizedBox(height: 16),
-                            InkWell(
-                              onTap: () => _selectDateTime(context),
-                              child: InputDecorator(
-                                decoration: InputDecoration(
-                                  labelText: 'تاریخ بارگیری',
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                  suffixIcon: const Icon(Icons.calendar_today),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 10),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        AppDateUtils.toPersianDate(_selectedDate),
-                                        style: const TextStyle(fontSize: 16),
-                                      ),
-                                      Text(
-                                        AppDateUtils.getPersianWeekDay(_selectedDate),
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey[600],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
+                            PersianDateFormField(
+                              selectedDate: _selectedDate,
+                              onDateChanged: (date) {
+                                setState(() {
+                                  _selectedDate = date;
+                                });
+                              },
+                              labelText: 'تاریخ بارگیری',
+                              prefixIcon: Icon(Icons.calendar_today),
+                              showWeekDay: true,
+                              validator: (date) {
+                                if (date == null) {
+                                  return 'لطفاً تاریخ بارگیری را انتخاب کنید';
+                                }
+                                return null;
+                              },
                             ),
                             const SizedBox(height: 16),
-                            InkWell(
-                              onTap: () => _selectUnloadingDate(context),
-                              child: InputDecorator(
-                                decoration: InputDecoration(
-                                  labelText: 'تاریخ تخلیه',
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                  suffixIcon: const Icon(Icons.calendar_today),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 10),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        _selectedUnloadingDate != null
-                                            ? AppDateUtils.toPersianDate(_selectedUnloadingDate!)
-                                            : 'انتخاب نشده',
-                                        style: const TextStyle(fontSize: 16),
-                                      ),
-                                      Text(
-                                        _selectedUnloadingDate != null
-                                            ? AppDateUtils.getPersianWeekDay(_selectedUnloadingDate!)
-                                            : '',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey[600],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
+                            PersianDateFormField(
+                              selectedDate: _selectedUnloadingDate ?? DateTime.now(),
+                              onDateChanged: (date) {
+                                setState(() {
+                                  _selectedUnloadingDate = date;
+                                });
+                              },
+                              labelText: 'تاریخ تخلیه',
+                              prefixIcon: Icon(Icons.calendar_today),
+                              showWeekDay: true,
                             ),
                             const SizedBox(height: 16),
                             TextFormField(

@@ -22,6 +22,7 @@ import 'package:khatooniiii/providers/theme_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:khatooniiii/screens/cargo_list_with_salary.dart';
 import 'package:khatooniiii/screens/cargo_type_management.dart';
+import 'package:khatooniiii/screens/driver_salary_management.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -156,7 +157,7 @@ class HomeScreen extends StatelessWidget {
       _MenuItem('ثبت حقوق راننده', Icons.account_balance_wallet, () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const CargoListWithSalary()),
+          MaterialPageRoute(builder: (context) => const DriverSalaryManagement()),
         );
       }),
     ];

@@ -2,6 +2,7 @@ import 'package:hive/hive.dart';
 import 'package:khatooniiii/models/vehicle.dart';
 import 'package:khatooniiii/models/driver.dart';
 import 'package:khatooniiii/models/cargo_type.dart';
+import 'package:khatooniiii/models/driver_payment.dart';
 
 part 'cargo.g.dart';
 
@@ -56,6 +57,9 @@ class Cargo extends HiveObject {
   @HiveField(13)
   DateTime? unloadingDate; // تاریخ تخلیه
 
+  @HiveField(14)
+  HiveList<DriverPayment>? driverPayments;
+
   Cargo({
     this.id,
     required this.vehicle,
@@ -71,6 +75,7 @@ class Cargo extends HiveObject {
     this.transportCostPerTon = 0, // Default value is 0
     this.waybillAmount = 0, // Default value
     this.waybillImagePath,
+    this.driverPayments,
   });
 
   // وزن را به تن تبدیل می‌کند (هر تن = 1000 کیلوگرم)
@@ -102,4 +107,54 @@ class Cargo extends HiveObject {
   
   // تعیین آیا این سرویس مقطوع است
   bool get isFixedPrice => weight == 0;
+
+  // Get total amount paid to driver
+  double get totalDriverPayments {
+    if (driverPayments == null || driverPayments!.isEmpty) return 0;
+    return driverPayments!.fold(0, (sum, payment) => sum + payment.amount);
+  }
+  
+  // Get remaining amount to be paid to driver
+  double getRemainingDriverPayment(double calculatedSalary) {
+    return calculatedSalary - totalDriverPayments;
+  }
+  
+  // Add a payment to this cargo
+  void addDriverPayment(DriverPayment payment, Box<DriverPayment> box) {
+    try {
+      print('Adding driver payment to cargo - debug info:');
+      print('Cargo key: ${this.key}');
+      print('Payment cargoId: ${payment.cargoId}');
+      print('Payment ID: ${payment.id}');
+      
+      // Get this cargo's key as a String with explicit conversion
+      final String cargoKey = this.key != null ? this.key.toString() : '';
+      
+      print('Cargo key converted to String: $cargoKey');
+      
+      // Update payment cargoId if needed to ensure consistency
+      if (payment.cargoId != cargoKey && cargoKey.isNotEmpty) {
+        print('Updating payment cargoId from "${payment.cargoId}" to "$cargoKey"');
+        payment.cargoId = cargoKey;
+        payment.save();
+      }
+      
+      // Initialize HiveList if needed
+      if (driverPayments == null) {
+        print('Creating new HiveList for driverPayments');
+        driverPayments = HiveList<DriverPayment>(box);
+      }
+      
+      // Add the payment to the HiveList
+      print('Adding payment to driverPayments list');
+      driverPayments!.add(payment);
+      
+      // Save the cargo object
+      print('Saving cargo after adding payment');
+      save();
+      print('Successfully added payment to cargo');
+    } catch (e) {
+      print('Error adding driver payment to cargo: $e');
+    }
+  }
 } 

@@ -18,13 +18,12 @@ import 'package:provider/provider.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:khatooniiii/utils/hive_migration.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Reset Hive database if schema has changed
-  await _resetHiveIfNeeded();
-  
+  // Initialize Hive
   await Hive.initFlutter();
   
   // Register Hive adapters
@@ -37,6 +36,9 @@ void main() async {
   Hive.registerAdapter(ExpenseAdapter());
   Hive.registerAdapter(DriverSalaryAdapter());
   Hive.registerAdapter(DriverPaymentAdapter());
+  
+  // Reset Hive database if schema has changed
+  await _resetHiveIfNeeded();
 
   // Open Hive boxes
   await Hive.openBox<Driver>('drivers');
@@ -129,7 +131,7 @@ Future<void> _resetHiveIfNeeded() async {
   final appDbDir = Directory('${appDocDir.path}/database_version.txt');
   
   // Current database version - increment this when schema changes
-  const currentVersion = '1.3';  // Updated for cargo_type fields
+  const currentVersion = '1.4';  // Updated for driver payment and salary field type changes
   
   try {
     if (await appDbDir.exists()) {
@@ -138,6 +140,7 @@ Future<void> _resetHiveIfNeeded() async {
       
       if (savedVersion != currentVersion) {
         // Version mismatch - delete database
+        print('Database version changed from $savedVersion to $currentVersion. Deleting database...');
         await _deleteHiveFiles();
         await versionFile.writeAsString(currentVersion);
       }

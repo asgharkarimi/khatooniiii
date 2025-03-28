@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:khatooniiii/models/cargo.dart';
-import 'package:khatooniiii/screens/driver_salary_form.dart';
+import 'package:khatooniiii/screens/driver_salary_management.dart';
 import 'package:khatooniiii/models/driver_salary.dart';
 import 'package:khatooniiii/utils/app_date_utils.dart';
-import 'package:khatooniiii/screens/driver_salary_list.dart';
 import 'package:khatooniiii/utils/driver_salary_calculator.dart';
 
 class CargoListWithSalary extends StatefulWidget {
@@ -114,7 +113,8 @@ class _CargoListWithSalaryState extends State<CargoListWithSalary> {
         
         for (var cargo in cargos) {
           print('\n--- Cargo Details ---');
-          print('Cargo ID: ${cargo.key}');
+          print('Hive Key: ${cargo.key}');
+          print('Cargo ID: ${cargo.id ?? "Not set"}');
           print('Cargo Type: ${cargo.cargoType.cargoName}');
           print('Driver: ${cargo.driver.firstName} ${cargo.driver.lastName}');
           print('Route: ${cargo.origin} -> ${cargo.destination}');
@@ -485,8 +485,9 @@ class _CargoListWithSalaryState extends State<CargoListWithSalary> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => DriverSalaryForm(
+                              builder: (context) => DriverSalaryManagement(
                                 selectedCargo: cargo,
+                                selectedDriver: cargo.driver,
                               ),
                             ),
                           );
@@ -548,9 +549,8 @@ class _CargoListWithSalaryState extends State<CargoListWithSalary> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => DriverSalaryList(
+                                  builder: (context) => DriverSalaryManagement(
                                     selectedCargo: cargo,
-                                    selectedDriver: cargo.driver,
                                   ),
                                 ),
                               );

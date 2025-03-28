@@ -29,6 +29,8 @@ class DriverSalaryCalculator {
     // Get the salary percentage from the driver table
     final salaryPercentage = driver.salaryPercentage;
     final netAmount = calculateNetAmount();
+    
+    // salaryPercentage is already in percentage form (e.g. 22, not 0.22)
     return (netAmount * salaryPercentage) / 100;
   }
 
