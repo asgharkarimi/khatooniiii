@@ -5,6 +5,7 @@ import 'package:khatooniiii/screens/expense_form.dart';
 import 'package:intl/intl.dart';
 import 'package:khatooniiii/widgets/float_button_style.dart';
 import 'dart:io';
+import 'package:khatooniiii/utils/date_utils.dart' as date_utils;
 
 class ExpenseList extends StatelessWidget {
   const ExpenseList({super.key});
@@ -103,7 +104,7 @@ class ExpenseList extends StatelessWidget {
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       subtitle: Text(
-                        '${expense.category} - ${DateFormat('yyyy/MM/dd').format(expense.date)}',
+                        '${expense.category} - ${date_utils.AppDateUtils.toPersianDate(expense.date)}',
                       ),
                       trailing: Text(
                         _formatAmount(expense.amount),
@@ -251,7 +252,7 @@ class ExpenseList extends StatelessWidget {
               ],
               _buildDetailRow('مبلغ:', _formatAmount(expense.amount)),
               _buildDetailRow('دسته‌بندی:', expense.category),
-              _buildDetailRow('تاریخ:', DateFormat('yyyy/MM/dd').format(expense.date)),
+              _buildDetailRow('تاریخ:', date_utils.AppDateUtils.toPersianDate(expense.date)),
               if (expense.description.isNotEmpty)
                 _buildDetailRow('توضیحات:', expense.description),
               
@@ -268,7 +269,7 @@ class ExpenseList extends StatelessWidget {
                 const SizedBox(height: 8),
                 _buildDetailRow('راننده:', expense.cargo!.driver.name),
                 _buildDetailRow('مسیر:', '${expense.cargo!.origin} به ${expense.cargo!.destination}'),
-                _buildDetailRow('تاریخ سرویس:', DateFormat('yyyy/MM/dd').format(expense.cargo!.date)),
+                _buildDetailRow('تاریخ سرویس:', date_utils.AppDateUtils.toPersianDate(expense.cargo!.date)),
               ],
             ],
           ),

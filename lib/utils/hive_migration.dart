@@ -1,8 +1,6 @@
 import 'package:hive/hive.dart';
 import 'package:khatooniiii/models/driver_payment.dart';
 import 'package:khatooniiii/models/driver_salary.dart';
-import 'package:khatooniiii/models/cargo.dart';
-import 'package:khatooniiii/models/driver.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 

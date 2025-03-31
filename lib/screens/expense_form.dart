@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:intl/intl.dart';
 import 'package:khatooniiii/models/expense.dart';
 import 'package:khatooniiii/models/cargo.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:khatooniiii/utils/number_formatter.dart';
+import 'package:khatooniiii/utils/date_utils.dart' as date_utils;
+import 'package:khatooniiii/widgets/persian_date_picker.dart';
 
 class ExpenseForm extends StatefulWidget {
   final Expense? expense;
@@ -78,13 +79,11 @@ class _ExpenseFormState extends State<ExpenseForm> {
   }
 
   Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
+    final DateTime? picked = await date_utils.AppDateUtils.showJalaliDatePicker(
       context: context,
       initialDate: _selectedDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
-      locale: const Locale('fa', 'IR'),
     );
+    
     if (picked != null && picked != _selectedDate) {
       setState(() {
         _selectedDate = picked;
@@ -242,7 +241,7 @@ class _ExpenseFormState extends State<ExpenseForm> {
                       child: Text('بدون ارتباط با سرویس بار'),
                     ),
                     ...cargos.map((cargo) {
-                      final date = DateFormat('yyyy/MM/dd').format(cargo.date);
+                      final date = date_utils.AppDateUtils.toPersianDate(cargo.date);
                       return DropdownMenuItem<Cargo>(
                         value: cargo,
                         child: Text(
@@ -339,16 +338,19 @@ class _ExpenseFormState extends State<ExpenseForm> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    InkWell(
-                      onTap: () => _selectDate(context),
-                      child: InputDecorator(
-                        decoration: const InputDecoration(
-                          labelText: 'تاریخ',
-                          border: OutlineInputBorder(),
-                        ),
-                        child: Text(
-                          DateFormat('yyyy/MM/dd').format(_selectedDate),
-                        ),
+                    PersianDatePicker(
+                      selectedDate: _selectedDate,
+                      onDateChanged: (date) {
+                        setState(() {
+                          _selectedDate = date;
+                        });
+                      },
+                      labelText: 'تاریخ هزینه',
+                      prefixIcon: Icon(Icons.calendar_today),
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(),
+                        filled: true,
+                        fillColor: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 16),

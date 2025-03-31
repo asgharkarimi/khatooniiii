@@ -12,6 +12,8 @@ import 'package:khatooniiii/models/driver_payment.dart';
 import 'package:khatooniiii/utils/app_date_utils.dart';
 import 'package:khatooniiii/widgets/persian_date_picker.dart';
 import 'package:flutter/foundation.dart';
+import 'package:khatooniiii/widgets/account_number_selector.dart';
+import 'package:khatooniiii/widgets/account_section.dart';
 
 class DriverSalaryManagement extends StatefulWidget {
   final DriverSalary? driverSalary;
@@ -72,12 +74,8 @@ class _DriverSalaryManagementState extends State<DriverSalaryManagement> with Si
       _isPercentageCalculated = true;
       
       // Set the remaining amount instead of the actual payment amount
-      if (widget.driverSalary!.remainingAmount != null) {
-        _amountController.text = formatNumber(widget.driverSalary!.remainingAmount!);
-      } else {
-        _amountController.text = widget.driverSalary!.amount.toString();
-      }
-    }
+      _amountController.text = formatNumber(widget.driverSalary!.remainingAmount!);
+        }
     
     if (widget.selectedCargo != null) {
       _selectedCargo = widget.selectedCargo;
@@ -618,7 +616,7 @@ class _DriverSalaryManagementState extends State<DriverSalaryManagement> with Si
           
           // Also check direct cargo reference (object equality)
           bool matchesObject = false;
-          if (payment.cargo != null && _selectedCargo != null) {
+          if (_selectedCargo != null) {
             // Try to match by key if both are present
             if (payment.cargo.key != null && _selectedCargo!.key != null) {
               matchesObject = payment.cargo.key == _selectedCargo!.key;
@@ -637,7 +635,7 @@ class _DriverSalaryManagementState extends State<DriverSalaryManagement> with Si
         })
         .toList();
     
-    print('Found ${payments.length} payments in box for cargo: ${cargoKey}');
+    print('Found ${payments.length} payments in box for cargo: $cargoKey');
     
     // If we found payments, try to link them to the cargo
     if (payments.isNotEmpty && _selectedCargo!.driverPayments == null) {
@@ -1158,98 +1156,11 @@ class _DriverSalaryManagementState extends State<DriverSalaryManagement> with Si
                         
                         // Bank Information (only show for bank transfer)
                         if (_selectedPaymentMethod == PaymentMethod.bankTransfer) ...[
-                          const Padding(
-                            padding: EdgeInsets.only(bottom: 12.0),
-                            child: Row(
-                              children: [
-                                Icon(Icons.account_balance_outlined, size: 20),
-                                SizedBox(width: 8),
-                                Text(
-                                  'اطلاعات بانکی',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ],
-                            ),
+                          BankInformationSection(
+                            selectedDriver: _selectedDriver,
+                            accountNumberController: _accountNumberController,
+                            bankNameController: _bankNameController,
                           ),
-                          Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ],
-                            ),
-                            child: TextFormField(
-                              controller: _accountNumberController,
-                              keyboardType: TextInputType.text,
-                              decoration: InputDecoration(
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide.none,
-                                ),
-                                filled: true,
-                                fillColor: Colors.white,
-                                hintText: 'شماره حساب یا شبای اعلامی به مشتری',
-                                prefixIcon: Icon(
-                                  Icons.credit_card,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(color: Colors.grey.shade200),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ],
-                            ),
-                            child: TextFormField(
-                              controller: _bankNameController,
-                              keyboardType: TextInputType.text,
-                              decoration: InputDecoration(
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide.none,
-                                ),
-                                filled: true,
-                                fillColor: Colors.white,
-                                hintText: 'نام بانک',
-                                prefixIcon: Icon(
-                                  Icons.account_balance,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(color: Colors.grey.shade200),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 24),
                         ],
                         
                         // Payment date
@@ -1588,12 +1499,8 @@ class _DriverSalaryManagementState extends State<DriverSalaryManagement> with Si
         print('  Cargo ID: ${payment.cargoId}');
         
         try {
-          if (payment.driver != null) {
-            print('  Driver: ${payment.driver.firstName} ${payment.driver.lastName} (Key: ${payment.driver.key})');
-          } else {
-            print('  Driver: Not linked to driver object');
-          }
-        } catch (e) {
+          print('  Driver: ${payment.driver.firstName} ${payment.driver.lastName} (Key: ${payment.driver.key})');
+                } catch (e) {
           print('  Driver: Error accessing driver data - $e');
         }
         
@@ -1607,17 +1514,13 @@ class _DriverSalaryManagementState extends State<DriverSalaryManagement> with Si
         
         // Print cargo information if available
         try {
-          if (payment.cargo != null) {
-            print('  Cargo Info:');
-            print('    Cargo ID: ${payment.cargo.id ?? "Not set"}');
-            print('    Cargo Key: ${payment.cargo.key}');
-            print('    Cargo Type: ${payment.cargo.cargoType.cargoName}');
-            print('    Route: ${payment.cargo.origin} -> ${payment.cargo.destination}');
-            print('    Cargo Price: ${NumberFormat('#,###').format(payment.cargo.totalPrice)} تومان');
-          } else {
-            print('  Cargo Reference: None');
-          }
-        } catch (e) {
+          print('  Cargo Info:');
+          print('    Cargo ID: ${payment.cargo.id ?? "Not set"}');
+          print('    Cargo Key: ${payment.cargo.key}');
+          print('    Cargo Type: ${payment.cargo.cargoType.cargoName}');
+          print('    Route: ${payment.cargo.origin} -> ${payment.cargo.destination}');
+          print('    Cargo Price: ${NumberFormat('#,###').format(payment.cargo.totalPrice)} تومان');
+                } catch (e) {
           print('  Error accessing cargo data: $e');
         }
         
@@ -1645,12 +1548,8 @@ class _DriverSalaryManagementState extends State<DriverSalaryManagement> with Si
         final salary = driverSalaries[i];
         print('\nSalary Record #${i+1}:');
         print('  ID: ${salary.id}');
-        if (salary.driver != null) {
-          print('  Driver: ${salary.driver.firstName} ${salary.driver.lastName} (Key: ${salary.driver.key})');
-        } else {
-          print('  Driver: Not linked');
-        }
-        print('  Amount: ${NumberFormat('#,###').format(salary.amount)} تومان');
+        print('  Driver: ${salary.driver.firstName} ${salary.driver.lastName} (Key: ${salary.driver.key})');
+              print('  Amount: ${NumberFormat('#,###').format(salary.amount)} تومان');
         print('  Payment Date: ${date_utils.AppDateUtils.toPersianDate(salary.paymentDate)}');
         print('  Payment Method: ${_getPaymentMethodName(salary.paymentMethod)}');
         
@@ -1674,7 +1573,7 @@ class _DriverSalaryManagementState extends State<DriverSalaryManagement> with Si
         // Print financial calculations
         print('  Calculated Total Salary: ${salary.calculatedSalary != null ? NumberFormat('#,###').format(salary.calculatedSalary!) : "Not calculated"} تومان');
         print('  Total Paid: ${salary.totalPaidAmount != null ? NumberFormat('#,###').format(salary.totalPaidAmount!) : "Not recorded"} تومان');
-        print('  Remaining: ${salary.remainingAmount != null ? NumberFormat('#,###').format(salary.remainingAmount!) : "Not recorded"} تومان');
+        print('  Remaining: ${salary.remainingAmount != null ? NumberFormat('#,###').format(salary.remainingAmount) : "Not recorded"} تومان');
       }
       
       print('\n==== END DEBUG DATA ====\n');
@@ -1726,25 +1625,23 @@ class _DriverSalaryManagementState extends State<DriverSalaryManagement> with Si
           if (paymentCargoId == "0" && !matchesCargo) {
             print('Payment has default cargo ID (0), checking cargo object directly');
             // If the payment has a default ID but an actual cargo object, check that
-            if (payment.cargo != null) {
-              // Try cargo.id first
-              if (payment.cargo.id != null) {
-                String cargoObjectId = payment.cargo.id.toString().trim();
-                print('Comparing cargo.id: "$cargoObjectId" == "$filterCargoId"');
-                matchesCargo = cargoObjectId == filterCargoId;
-              }
-              
-              // If still no match, try cargo.key
-              if (!matchesCargo && payment.cargo.key != null) {
-                String cargoObjectKey = payment.cargo.key.toString().trim();
-                print('Comparing cargo.key: "$cargoObjectKey" == "$filterCargoId"');
-                matchesCargo = cargoObjectKey == filterCargoId;
-              }
+            // Try cargo.id first
+            if (payment.cargo.id != null) {
+              String cargoObjectId = payment.cargo.id.toString().trim();
+              print('Comparing cargo.id: "$cargoObjectId" == "$filterCargoId"');
+              matchesCargo = cargoObjectId == filterCargoId;
             }
-          }
+            
+            // If still no match, try cargo.key
+            if (!matchesCargo && payment.cargo.key != null) {
+              String cargoObjectKey = payment.cargo.key.toString().trim();
+              print('Comparing cargo.key: "$cargoObjectKey" == "$filterCargoId"');
+              matchesCargo = cargoObjectKey == filterCargoId;
+            }
+                    }
           
           // Also check against cargo.id if available
-          if (!matchesCargo && payment.cargo != null && payment.cargo.id != null) {
+          if (!matchesCargo && payment.cargo.id != null) {
             String cargoObjectId = payment.cargo.id.toString().trim();
             print('Comparing against cargo.id: "$cargoObjectId" == "$filterCargoId"');
             matchesCargo = cargoObjectId == filterCargoId;
@@ -1763,7 +1660,7 @@ class _DriverSalaryManagementState extends State<DriverSalaryManagement> with Si
           matchesDriver = paymentDriverId == filterDriverId;
           
           // Also check against driver.id if available
-          if (!matchesDriver && payment.driver != null && payment.driver.id != null) {
+          if (!matchesDriver) {
             String driverObjectId = payment.driver.id.toString().trim();
             print('Comparing against driver.id: "$driverObjectId" == "$filterDriverId"');
             matchesDriver = driverObjectId == filterDriverId;
@@ -1787,12 +1684,8 @@ class _DriverSalaryManagementState extends State<DriverSalaryManagement> with Si
         print('  Cargo ID: ${payment.cargoId}');
         
         try {
-          if (payment.driver != null) {
-            print('  Driver: ${payment.driver.firstName} ${payment.driver.lastName} (Key: ${payment.driver.key})');
-          } else {
-            print('  Driver: Not linked to driver object');
-          }
-        } catch (e) {
+          print('  Driver: ${payment.driver.firstName} ${payment.driver.lastName} (Key: ${payment.driver.key})');
+                } catch (e) {
           print('  Driver: Error accessing driver data - $e');
         }
         
@@ -1806,17 +1699,13 @@ class _DriverSalaryManagementState extends State<DriverSalaryManagement> with Si
         
         // Print cargo information if available
         try {
-          if (payment.cargo != null) {
-            print('  Cargo Info:');
-            print('    Cargo ID: ${payment.cargo.id ?? "Not set"}');
-            print('    Cargo Key: ${payment.cargo.key}');
-            print('    Cargo Type: ${payment.cargo.cargoType.cargoName}');
-            print('    Route: ${payment.cargo.origin} -> ${payment.cargo.destination}');
-            print('    Cargo Price: ${NumberFormat('#,###').format(payment.cargo.totalPrice)} تومان');
-          } else {
-            print('  Cargo Reference: None');
-          }
-        } catch (e) {
+          print('  Cargo Info:');
+          print('    Cargo ID: ${payment.cargo.id ?? "Not set"}');
+          print('    Cargo Key: ${payment.cargo.key}');
+          print('    Cargo Type: ${payment.cargo.cargoType.cargoName}');
+          print('    Route: ${payment.cargo.origin} -> ${payment.cargo.destination}');
+          print('    Cargo Price: ${NumberFormat('#,###').format(payment.cargo.totalPrice)} تومان');
+                } catch (e) {
           print('  Error accessing cargo data: $e');
         }
         
@@ -2088,7 +1977,7 @@ class _DriverSalaryManagementState extends State<DriverSalaryManagement> with Si
             // List payments grouped by cargo
             for (var entry in salariesByCargoId.entries) ...[
               _buildCargoGroupHeader(entry.key, entry.value),
-              ...entry.value.map((salary) => _buildSalaryItem(salary)).toList(),
+              ...entry.value.map((salary) => _buildSalaryItem(salary)),
               const SizedBox(height: 16),
             ],
           ],

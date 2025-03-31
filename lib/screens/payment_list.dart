@@ -17,7 +17,7 @@ class PaymentList extends StatefulWidget {
 
 class _PaymentListState extends State<PaymentList> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  bool _isGroupedByCargo = true;
+  final bool _isGroupedByCargo = true;
 
   @override
   void initState() {
@@ -867,7 +867,7 @@ class _PaymentListState extends State<PaymentList> with SingleTickerProviderStat
             ],
           ),
           content: SingleChildScrollView(
-            child: Container(
+            child: SizedBox(
               width: double.maxFinite,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -883,11 +883,11 @@ class _PaymentListState extends State<PaymentList> with SingleTickerProviderStat
                     icon: _getPaymentTypeIcon(payment.paymentType), 
                     iconColor: _getPaymentTypeColor(payment.paymentType)),
                   const Divider(),
-                  if (payment.customer != null) ...[
-                    _buildDetailRow('پرداخت کننده', '${payment.customer.firstName} ${payment.customer.lastName}', 
-                      icon: Icons.person, iconColor: Colors.blue),
-                    const Divider(),
-                  ],
+                  ...[
+                  _buildDetailRow('پرداخت کننده', '${payment.customer.firstName} ${payment.customer.lastName}', 
+                    icon: Icons.person, iconColor: Colors.blue),
+                  const Divider(),
+                ],
                   _buildDetailRow('سرویس', 
                     '${payment.cargo.cargoType.cargoName} - ${payment.cargo.origin} به ${payment.cargo.destination}', 
                     icon: Icons.local_shipping, iconColor: Colors.purple),
@@ -990,14 +990,12 @@ class _PaymentListState extends State<PaymentList> with SingleTickerProviderStat
     // Group payments by cargo
     Map<int, List<Payment>> paymentsByCargo = {};
     for (var payment in payments) {
-      if (payment.cargo != null) {
-        final cargoKey = payment.cargo.key;
-        if (!paymentsByCargo.containsKey(cargoKey)) {
-          paymentsByCargo[cargoKey] = [];
-        }
-        paymentsByCargo[cargoKey]!.add(payment);
+      final cargoKey = payment.cargo.key;
+      if (!paymentsByCargo.containsKey(cargoKey)) {
+        paymentsByCargo[cargoKey] = [];
       }
-    }
+      paymentsByCargo[cargoKey]!.add(payment);
+        }
     
     // Print payments grouped by cargo
     print('\n--- PAYMENTS BY CARGO ---');

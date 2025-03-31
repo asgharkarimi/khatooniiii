@@ -16,13 +16,6 @@ class DriverSalaryAdapter extends TypeAdapter<DriverSalary> {
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    
-    // Safe conversion for cargoId field - handle both int and String types
-    String? safeCargoId;
-    if (fields[12] != null) {
-      safeCargoId = fields[12] is String ? fields[12] : fields[12].toString();
-    }
-    
     return DriverSalary(
       id: fields[0] as String?,
       driver: fields[1] as Driver,
@@ -35,7 +28,7 @@ class DriverSalaryAdapter extends TypeAdapter<DriverSalary> {
       calculatedSalary: fields[9] as double?,
       totalPaidAmount: fields[10] as double?,
       remainingAmount: fields[11] as double,
-      cargoId: safeCargoId,
+      cargoId: fields[12] as String?,
     )..createdAt = fields[6] as DateTime;
   }
 

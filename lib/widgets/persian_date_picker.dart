@@ -14,7 +14,7 @@ class PersianDatePicker extends StatelessWidget {
   final InputDecoration? decoration;
   
   const PersianDatePicker({
-    Key? key,
+    super.key,
     required this.selectedDate,
     required this.onDateChanged,
     this.labelText,
@@ -25,7 +25,7 @@ class PersianDatePicker extends StatelessWidget {
     this.readOnly = false,
     this.validator,
     this.decoration,
-  }) : super(key: key);
+  });
   
   Future<void> _selectDate(BuildContext context) async {
     if (readOnly) return;
@@ -164,12 +164,12 @@ class StyledPersianDatePicker extends StatelessWidget {
   final bool readOnly;
   
   const StyledPersianDatePicker({
-    Key? key,
+    super.key,
     required this.selectedDate,
     required this.onDateChanged,
     required this.title,
     this.readOnly = false,
-  }) : super(key: key);
+  });
   
   @override
   Widget build(BuildContext context) {

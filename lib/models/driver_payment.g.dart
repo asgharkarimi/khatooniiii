@@ -16,18 +16,6 @@ class DriverPaymentAdapter extends TypeAdapter<DriverPayment> {
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    
-    // Safe conversion for cargoId and driverId fields
-    String? safeCargoId;
-    if (fields[7] != null) {
-      safeCargoId = fields[7] is String ? fields[7] : fields[7].toString();
-    }
-    
-    String? safeDriverId;
-    if (fields[12] != null) {
-      safeDriverId = fields[12] is String ? fields[12] : fields[12].toString();
-    }
-    
     return DriverPayment(
       id: fields[0] as String?,
       driver: fields[1] as Driver,
@@ -36,11 +24,11 @@ class DriverPaymentAdapter extends TypeAdapter<DriverPayment> {
       paymentDate: fields[4] as DateTime,
       paymentMethod: fields[5] as int,
       description: fields[6] as String?,
-      cargoId: safeCargoId,
+      cargoId: fields[7] as String?,
       calculatedSalary: fields[8] as double,
       totalPaidAmount: fields[9] as double,
       remainingAmount: fields[10] as double,
-      driverId: safeDriverId,
+      driverId: fields[12] as String?,
     );
   }
 

@@ -270,7 +270,7 @@ class _PaymentFormState extends State<PaymentForm> {
             final driver = cargo.driver;
             final origin = cargo.origin;
             final destination = cargo.destination;
-            final dateStr = DateFormat('yyyy/MM/dd').format(cargo.date);
+            final dateStr = AppDateUtils.toPersianDate(cargo.date);
 
             return DropdownMenuItem<Cargo>(
               value: cargo,

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:khatooniiii/providers/theme_provider.dart';
-import 'package:khatooniiii/utils/db_exporter.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -25,13 +24,13 @@ class SettingsScreen extends StatelessWidget {
           const Divider(),
           
           // تنظیمات پایگاه داده
-          _buildSectionHeader(context, 'پایگاه داده'),
-          ListTile(
-            title: const Text('نمایش ساختار پایگاه داده'),
-            subtitle: const Text('مشاهده جداول و روابط پایگاه داده'),
-            leading: const Icon(Icons.storage),
-            onTap: () => DbExporter.showDbStructure(context),
-          ),
+          //_buildSectionHeader(context, 'پایگاه داده'),
+          // ListTile(
+          //   title: const Text('نمایش ساختار پایگاه داده'),
+          //   subtitle: const Text('مشاهده جداول و روابط پایگاه داده'),
+          //   leading: const Icon(Icons.storage),
+          //   onTap: () => DbExporter.showDbStructure(context),
+          // ),
           
           // اطلاعات برنامه
           const Divider(),
@@ -43,11 +42,11 @@ class SettingsScreen extends StatelessWidget {
           ),
           ListTile(
             title: const Text('توسعه دهنده'),
-            subtitle: const Text('خاتونی - سیستم مدیریت بار'),
+            subtitle: const Text('خاتون بار - سیستم مدیریت بار'),
             leading: const Icon(Icons.code),
             onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('خاتونی - سیستم مدیریت بار و حمل و نقل')),
+                const SnackBar(content: Text('خاتون بار - سیستم مدیریت بار و حمل و نقل')),
               );
             },
           ),

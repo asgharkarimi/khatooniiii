@@ -57,13 +57,20 @@ class CargoAdapter extends TypeAdapter<Cargo> {
       waybillAmount: fields[11] as double?,
       waybillImagePath: fields[12] as String?,
       driverPayments: (fields[14] as HiveList?)?.castHiveList(),
+      bankAccount: fields[15] as String?,
+      bankName: fields[16] as String?,
+      accountOwnerName: fields[17] as String?,
+      loadingAddress: fields[18] as String?,
+      unloadingAddress: fields[19] as String?,
+      recipientContactNumber: fields[20] as String?,
+      freight: fields[21] as Freight?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Cargo obj) {
     writer
-      ..writeByte(15)
+      ..writeByte(22)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -93,7 +100,21 @@ class CargoAdapter extends TypeAdapter<Cargo> {
       ..writeByte(13)
       ..write(obj.unloadingDate)
       ..writeByte(14)
-      ..write(obj.driverPayments);
+      ..write(obj.driverPayments)
+      ..writeByte(15)
+      ..write(obj.bankAccount)
+      ..writeByte(16)
+      ..write(obj.bankName)
+      ..writeByte(17)
+      ..write(obj.accountOwnerName)
+      ..writeByte(18)
+      ..write(obj.loadingAddress)
+      ..writeByte(19)
+      ..write(obj.unloadingAddress)
+      ..writeByte(20)
+      ..write(obj.recipientContactNumber)
+      ..writeByte(21)
+      ..write(obj.freight);
   }
 
   @override

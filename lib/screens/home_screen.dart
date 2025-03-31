@@ -13,6 +13,7 @@ import 'package:khatooniiii/screens/expense_list.dart';
 import 'package:khatooniiii/screens/customer_list.dart';
 import 'package:khatooniiii/screens/reports/cargo_report_screen.dart';
 import 'package:khatooniiii/screens/settings_screen.dart';
+import 'package:khatooniiii/screens/address_screen.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:khatooniiii/models/driver.dart';
 import 'package:khatooniiii/models/cargo.dart';
@@ -20,9 +21,10 @@ import 'package:khatooniiii/models/payment.dart';
 import 'package:khatooniiii/models/expense.dart';
 import 'package:khatooniiii/providers/theme_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:khatooniiii/screens/cargo_list_with_salary.dart';
 import 'package:khatooniiii/screens/cargo_type_management.dart';
 import 'package:khatooniiii/screens/driver_salary_management.dart';
+import 'package:khatooniiii/screens/freight_screen.dart';
+import 'package:khatooniiii/screens/bank_account_list.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -33,9 +35,13 @@ class HomeScreen extends StatelessWidget {
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text('سامانه خاتون بار'),
+        title: const Text('سامانه خاتون بار', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
+        elevation: 0,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+        ),
         actions: [
           IconButton(
             icon: Icon(themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode),
@@ -63,7 +69,7 @@ class HomeScreen extends StatelessWidget {
             end: Alignment.bottomCenter,
             colors: [
               Theme.of(context).colorScheme.primary.withOpacity(0.1),
-              Colors.white,
+              Colors.white.withOpacity(0.9),
             ],
           ),
         ),
@@ -74,29 +80,12 @@ class HomeScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Header
-                Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12.0),
-                  child: Column(
-                    children: [
-                      const Center(
-                        child: Icon(
-                          Icons.local_shipping,
-                          size: 48,
-                          color: Colors.blue,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'داشبورد مدیریتی سامانه',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
+                _buildAnimatedHeader(context),
+                
+                const SizedBox(height: 24),
+                
+                // Dashboard Stats
+                _buildDashboardStats(context),
                 
                 const SizedBox(height: 24),
                 
@@ -106,6 +95,197 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildAnimatedHeader(BuildContext context) {
+    return Hero(
+      tag: 'dashboard_header',
+      child: Container(
+        padding: const EdgeInsets.all(20.0),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
+            colors: [
+              Theme.of(context).colorScheme.primary,
+              Theme.of(context).colorScheme.secondary,
+            ],
+          ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.local_shipping,
+                    size: 36,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'داشبورد مدیریتی سامانه',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                shadows: [
+                  const Shadow(
+                    offset: Offset(0, 2),
+                    blurRadius: 3,
+                    color: Color.fromRGBO(0, 0, 0, 0.3),
+                  ),
+                ],
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'مدیریت آسان ناوگان حمل و نقل',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDashboardStats(BuildContext context) {
+    final cargosBox = Hive.box<Cargo>('cargos');
+    final driversBox = Hive.box<Driver>('drivers');
+    final paymentsBox = Hive.box<Payment>('payments');
+    final expensesBox = Hive.box<Expense>('expenses');
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Text(
+            'آمار کلی',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+        ),
+        Row(
+          children: [
+            Expanded(
+              child: _buildStatCard(
+                context,
+                Icons.local_shipping,
+                cargosBox.length.toString(),
+                'سرویس‌ها',
+                Colors.blue,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildStatCard(
+                context,
+                Icons.people,
+                driversBox.length.toString(),
+                'رانندگان',
+                Colors.green,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _buildStatCard(
+                context,
+                Icons.payment,
+                paymentsBox.length.toString(),
+                'پرداخت‌ها',
+                Colors.orange,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildStatCard(
+                context,
+                Icons.money_off,
+                expensesBox.length.toString(),
+                'هزینه‌ها',
+                Colors.red,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatCard(BuildContext context, IconData icon, String count, String title, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              color: color,
+              size: 24,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            count,
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            title,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -136,10 +316,28 @@ class HomeScreen extends StatelessWidget {
           MaterialPageRoute(builder: (context) => const CustomerForm()),
         );
       }),
+      _MenuItem('ثبت اطلاعات بانکی', Icons.credit_card, () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const BankAccountList()),
+        );
+      }),
+      _MenuItem('ثبت آدرس', Icons.add_location, () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const AddressScreen()),
+        );
+      }),
       _MenuItem('ثبت سرویس بار', Icons.local_shipping, () {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const CargoForm()),
+        );
+      }),
+      _MenuItem('ثبت باربری', Icons.add_business, () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const FreightScreen()),
         );
       }),
       _MenuItem('ثبت پرداخت', Icons.payment, () {
@@ -199,6 +397,18 @@ class HomeScreen extends StatelessWidget {
           MaterialPageRoute(builder: (context) => const CargoTypeManagement()),
         );
       }),
+      _MenuItem('مدیریت آدرس‌ها', Icons.location_city, () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const AddressScreen()),
+        );
+      }),
+      _MenuItem('مدیریت حساب‌های بانکی', Icons.account_balance, () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const BankAccountList()),
+        );
+      }),
     ];
     
     final reportItems = [
@@ -217,223 +427,184 @@ class HomeScreen extends StatelessWidget {
       _MenuItem('گزارش گیری راننده‌ها', Icons.people, () {
         _showTemporaryMessage(context, 'صفحه گزارش گیری راننده‌ها به زودی اضافه می‌شود');
       }),
-      _MenuItem('گزارش گیری مشتریان', Icons.person_outline, () {
-        _showTemporaryMessage(context, 'صفحه گزارش گیری مشتریان به زودی اضافه می‌شود');
-      }),
-      _MenuItem('گزارش گیری خلاصه', Icons.analytics, () {
-        _showReportOptions(context);
-      }),
     ];
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Registration section
-        Card(
-          elevation: 4,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                decoration: BoxDecoration(
-                  color: Colors.blue[700],
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    topRight: Radius.circular(16),
-                  ),
-                ),
-                child: const Text(
-                  'ثبت اطلاعات جدید',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: 0.85,
-                  ),
-                  itemCount: registrationItems.length,
-                  itemBuilder: (context, index) {
-                    final item = registrationItems[index];
-                    return _buildMenuCard(context, item, Colors.blue.shade50);
-                  },
-                ),
-              ),
-            ],
-          ),
+        _buildCategoryCard(
+          context,
+          'ثبت اطلاعات جدید',
+          'افزودن اطلاعات و ثبت موجودیت‌های جدید',
+          Colors.blue,
+          Icons.add_circle,
+          registrationItems,
         ),
-        
-        const SizedBox(height: 40),
-        
-        // Management section
-        Card(
-          elevation: 4,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                decoration: BoxDecoration(
-                  color: Colors.green[700],
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    topRight: Radius.circular(16),
-                  ),
-                ),
-                child: const Text(
-                  'مدیریت اطلاعات',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: 0.85,
-                  ),
-                  itemCount: managementItems.length,
-                  itemBuilder: (context, index) {
-                    final item = managementItems[index];
-                    return _buildMenuCard(context, item, Colors.green.shade50);
-                  },
-                ),
-              ),
-            ],
-          ),
+        const SizedBox(height: 24),
+        _buildCategoryCard(
+          context,
+          'مدیریت اطلاعات',
+          'مشاهده و ویرایش اطلاعات موجود',
+          Colors.green,
+          Icons.edit_document,
+          managementItems,
         ),
-        
-        const SizedBox(height: 40),
-        
-        // Reports section
-        Card(
-          elevation: 4,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                decoration: BoxDecoration(
-                  color: Colors.purple[700],
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    topRight: Radius.circular(16),
-                  ),
-                ),
-                child: const Text(
-                  'گزارش گیری',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: 0.85,
-                  ),
-                  itemCount: reportItems.length,
-                  itemBuilder: (context, index) {
-                    final item = reportItems[index];
-                    return _buildMenuCard(context, item, Colors.purple.shade50);
-                  },
-                ),
-              ),
-            ],
-          ),
+        const SizedBox(height: 24),
+        _buildCategoryCard(
+          context,
+          'گزارش‌گیری',
+          'مشاهده و استخراج گزارش‌های مختلف',
+          Colors.orange,
+          Icons.bar_chart,
+          reportItems,
         ),
-        
-        const SizedBox(height: 40),
       ],
     );
   }
-  
-  Widget _buildMenuCard(BuildContext context, _MenuItem item, Color backgroundColor) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: backgroundColor,
-      margin: const EdgeInsets.all(4.0),
-      child: InkWell(
-        onTap: item.onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(6.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.2),
-                      spreadRadius: 1,
-                      blurRadius: 3,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Icon(
-                  item.icon,
-                  color: Theme.of(context).colorScheme.primary,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Flexible(
-                child: Text(
-                  item.title,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
+
+  Widget _buildCategoryCard(
+    BuildContext context,
+    String title,
+    String subtitle,
+    Color color,
+    IconData icon,
+    List<_MenuItem> items,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.2),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topRight,
+                end: Alignment.bottomLeft,
+                colors: [
+                  color,
+                  color.withOpacity(0.8),
+                ],
+              ),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    icon,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white.withOpacity(0.9),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: GridView.builder(
+              physics: const NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 0.8,
+              ),
+              itemCount: items.length,
+              itemBuilder: (context, index) {
+                final menuItem = items[index];
+                return _buildAnimatedMenuItem(context, menuItem, color);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAnimatedMenuItem(BuildContext context, _MenuItem menuItem, Color color) {
+    return InkWell(
+      onTap: menuItem.onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withOpacity(0.1)),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                menuItem.icon,
+                color: color,
+                size: 22,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                menuItem.title,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[800],
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  // تابع نمایش آپشن‌های گزارش گیری
   void _showReportOptions(BuildContext context) {
     showDialog(
       context: context,
@@ -496,7 +667,7 @@ class HomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 _buildReportOption(
-                  context,
+                  context, 
                   'گزارش گیری سرویس‌های بار',
                   Icons.local_shipping,
                   Colors.blue,
@@ -515,7 +686,7 @@ class HomeScreen extends StatelessWidget {
                   },
                 ),
                 _buildReportOption(
-                  context,
+                  context, 
                   'گزارش گیری مالی',
                   Icons.monetization_on,
                   Colors.green,
@@ -526,7 +697,7 @@ class HomeScreen extends StatelessWidget {
                   },
                 ),
                 _buildReportOption(
-                  context,
+                  context, 
                   'گزارش گیری هزینه‌ها',
                   Icons.money_off,
                   Colors.red,
@@ -537,7 +708,7 @@ class HomeScreen extends StatelessWidget {
                   },
                 ),
                 _buildReportOption(
-                  context,
+                  context, 
                   'گزارش گیری راننده‌ها',
                   Icons.person,
                   Colors.orange,
@@ -573,7 +744,7 @@ class HomeScreen extends StatelessWidget {
       },
     );
   }
-  
+
   // دکمه‌های انتخاب دوره زمانی گزارش
   Widget _buildPeriodOption(BuildContext context, String title, IconData icon) {
     return InkWell(
@@ -598,7 +769,7 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
-  
+
   // نمایش لیست آیتم‌های گزارش
   Widget _buildReportOption(
     BuildContext context,
@@ -616,8 +787,7 @@ class HomeScreen extends StatelessWidget {
       onTap: onTap,
     );
   }
-  
-  // نمایش پیام موقت
+
   void _showTemporaryMessage(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

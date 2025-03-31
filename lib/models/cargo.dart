@@ -3,6 +3,7 @@ import 'package:khatooniiii/models/vehicle.dart';
 import 'package:khatooniiii/models/driver.dart';
 import 'package:khatooniiii/models/cargo_type.dart';
 import 'package:khatooniiii/models/driver_payment.dart';
+import 'package:khatooniiii/models/freight.dart';
 
 part 'cargo.g.dart';
 
@@ -60,6 +61,27 @@ class Cargo extends HiveObject {
   @HiveField(14)
   HiveList<DriverPayment>? driverPayments;
 
+  @HiveField(15)
+  String? bankAccount; // شماره شبا یا حساب اعلامی جهت واریز هزینه سرویس
+
+  @HiveField(16)
+  String? bankName; // نام بانک
+
+  @HiveField(17)
+  String? accountOwnerName; // نام صاحب حساب
+
+  @HiveField(18)
+  String? loadingAddress; // آدرس بارگیری
+
+  @HiveField(19)
+  String? unloadingAddress; // آدرس تخلیه
+
+  @HiveField(20)
+  String? recipientContactNumber; // شماره تماس تحویل گیرنده بار
+
+  @HiveField(21)
+  Freight? freight;
+
   Cargo({
     this.id,
     required this.vehicle,
@@ -76,6 +98,13 @@ class Cargo extends HiveObject {
     this.waybillAmount = 0, // Default value
     this.waybillImagePath,
     this.driverPayments,
+    this.bankAccount,
+    this.bankName,
+    this.accountOwnerName,
+    this.loadingAddress,
+    this.unloadingAddress,
+    this.recipientContactNumber,
+    this.freight,
   });
 
   // وزن را به تن تبدیل می‌کند (هر تن = 1000 کیلوگرم)
@@ -123,12 +152,12 @@ class Cargo extends HiveObject {
   void addDriverPayment(DriverPayment payment, Box<DriverPayment> box) {
     try {
       print('Adding driver payment to cargo - debug info:');
-      print('Cargo key: ${this.key}');
+      print('Cargo key: ${key}');
       print('Payment cargoId: ${payment.cargoId}');
       print('Payment ID: ${payment.id}');
       
       // Get this cargo's key as a String with explicit conversion
-      final String cargoKey = this.key != null ? this.key.toString() : '';
+      final String cargoKey = key != null ? key.toString() : '';
       
       print('Cargo key converted to String: $cargoKey');
       

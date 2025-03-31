@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:intl/intl.dart';
 import 'package:khatooniiii/models/cargo.dart';
 import 'package:khatooniiii/models/driver.dart';
 import 'package:khatooniiii/models/payment.dart';
@@ -10,6 +9,7 @@ import 'package:khatooniiii/screens/cargo_form.dart';
 import 'package:khatooniiii/widgets/float_button_style.dart';
 import 'package:khatooniiii/screens/vehicle_list.dart';
 import 'package:khatooniiii/screens/driver_list.dart';
+import 'package:khatooniiii/utils/date_utils.dart' as date_utils;
 
 // کلاس برای نگهداری محاسبات گزارش
 class ReportData {
@@ -117,7 +117,26 @@ class _CargoReportScreenState extends State<CargoReportScreen> with SingleTicker
       tooltip: 'افزودن سرویس بار جدید',
       bottomMargin: 20,
       appBar: AppBar(
-        title: const Text('گزارش سرویس‌های بار'),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                'گزارش سرویس‌های بار',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              icon: const Icon(Icons.filter_alt),
+              onPressed: () {
+                _showFilterDialog();
+              },
+            ),
+          ],
+        ),
         backgroundColor: Colors.blue[800],
         foregroundColor: Colors.white,
         actions: [
@@ -285,8 +304,8 @@ class _CargoReportScreenState extends State<CargoReportScreen> with SingleTicker
 
   // نمایش فیلتر تاریخ
   Widget _buildDateFilterChip() {
-    final startText = DateFormat('yyyy/MM/dd').format(_startDate);
-    final endText = DateFormat('yyyy/MM/dd').format(_endDate);
+    final startText = date_utils.AppDateUtils.toPersianDate(_startDate);
+    final endText = date_utils.AppDateUtils.toPersianDate(_endDate);
     
     return InkWell(
       onTap: _selectDateRange,
@@ -884,7 +903,7 @@ class _CargoReportScreenState extends State<CargoReportScreen> with SingleTicker
                                               ),
                                               const SizedBox(width: 6),
                                               Text(
-                                                DateFormat('yyyy/MM/dd').format(cargo.date),
+                                                date_utils.AppDateUtils.toPersianDate(cargo.date),
                                                 style: TextStyle(color: Colors.grey[700], fontSize: 11),
                                               ),
                                             ],

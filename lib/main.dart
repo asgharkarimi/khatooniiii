@@ -10,6 +10,8 @@ import 'package:khatooniiii/models/payment.dart';
 import 'package:khatooniiii/models/expense.dart';
 import 'package:khatooniiii/models/driver_salary.dart';
 import 'package:khatooniiii/models/driver_payment.dart';
+import 'package:khatooniiii/models/freight.dart';
+import 'package:khatooniiii/models/address.dart';
 import 'package:khatooniiii/screens/home_screen.dart';
 import 'package:khatooniiii/theme/app_theme.dart';
 import 'package:khatooniiii/providers/theme_provider.dart';
@@ -18,7 +20,12 @@ import 'package:provider/provider.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:khatooniiii/utils/hive_migration.dart';
+import 'package:khatooniiii/models/bank_account.dart';
+import 'package:khatooniiii/screens/driver_form.dart';
+import 'package:khatooniiii/screens/vehicle_form.dart';
+import 'package:khatooniiii/screens/cargo_type_form.dart';
+import 'package:khatooniiii/screens/bank_account_form.dart';
+import 'package:khatooniiii/screens/address_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,6 +43,9 @@ void main() async {
   Hive.registerAdapter(ExpenseAdapter());
   Hive.registerAdapter(DriverSalaryAdapter());
   Hive.registerAdapter(DriverPaymentAdapter());
+  Hive.registerAdapter(FreightAdapter());
+  Hive.registerAdapter(AddressAdapter());
+  Hive.registerAdapter(BankAccountAdapter());
   
   // Reset Hive database if schema has changed
   await _resetHiveIfNeeded();
@@ -50,6 +60,9 @@ void main() async {
   await Hive.openBox<Expense>('expenses');
   await Hive.openBox<DriverSalary>('driverSalaries');
   await Hive.openBox<DriverPayment>('driverPayments');
+  await Hive.openBox<Freight>('freights');
+  await Hive.openBox<Address>('addresses');
+  await Hive.openBox<BankAccount>('bankAccounts');
 
   // Run migration to ensure all Cargo objects have transportCostPerTon set
   await _migrateCargoObjects();
@@ -205,6 +218,61 @@ class MyApp extends StatelessWidget {
               );
             },
             home: const HomeScreen(),
+            onGenerateRoute: (settings) {
+              switch (settings.name) {
+                case '/driver_form':
+                  return MaterialPageRoute(
+                    builder: (context) => const DriverForm(),
+                  );
+                case '/vehicle_form':
+                  return MaterialPageRoute(
+                    builder: (context) => const VehicleForm(),
+                  );
+                case '/cargo_type_form':
+                  return MaterialPageRoute(
+                    builder: (context) => const CargoTypeForm(),
+                  );
+                case '/bank_account_form':
+                  return MaterialPageRoute(
+                    builder: (context) => const BankAccountForm(),
+                  );
+                case '/address_screen':
+                  return MaterialPageRoute(
+                    builder: (context) => const AddressScreen(),
+                  );
+                default:
+                  return null;
+              }
+            },
+            onUnknownRoute: (settings) {
+              return MaterialPageRoute(
+                builder: (context) => Scaffold(
+                  appBar: AppBar(
+                    title: const Text('صفحه یافت نشد'),
+                  ),
+                  body: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'صفحه مورد نظر یافت نشد',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 8),
+                        Text('مسیر: ${settings.name}'),
+                        const SizedBox(height: 24),
+                        ElevatedButton(
+                          onPressed: () => Navigator.of(context).pushReplacementNamed('/'),
+                          child: const Text('بازگشت به صفحه اصلی'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
           );
         },
       ),

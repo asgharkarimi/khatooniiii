@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:khatooniiii/models/cargo_type.dart';
-import 'package:khatooniiii/utils/date_utils.dart';
-import 'package:intl/intl.dart';
 import 'package:khatooniiii/screens/cargo_type_form.dart';
 
 class CargoTypeManagement extends StatefulWidget {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:khatooniiii/models/cargo.dart';
 import 'package:intl/intl.dart';
+import 'package:khatooniiii/utils/date_utils.dart' as date_utils;
 
 class CargoList extends StatelessWidget {
   const CargoList({super.key});
@@ -41,11 +42,12 @@ class CargoList extends StatelessWidget {
                       Text('هزینه حمل هر تن: ${NumberFormat('#,###').format(cargo.transportCostPerTon)} تومان'),
                       if (cargo.waybillAmount != null)
                         Text('مبلغ بارنامه: ${NumberFormat('#,###').format(cargo.waybillAmount)} تومان'),
-              ],
-            ),
-          ),
-        );
-      },
+                      Text('تاریخ: ${date_utils.AppDateUtils.toPersianDate(cargo.date)}'),
+                    ],
+                  ),
+                ),
+              );
+            },
           );
         },
       ),
