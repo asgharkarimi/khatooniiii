@@ -895,32 +895,32 @@ class _CargoFormState extends State<CargoForm> {
                               ),
                             ),
                             const SizedBox(height: 16),
-                            PersianDateFormField(
-                              selectedDate: _selectedDate,
-                              onDateChanged: (date) {
+                            PersianDateTimeFormField(
+                              selectedDateTime: _selectedDate,
+                              onDateTimeChanged: (date) {
                                 setState(() {
                                   _selectedDate = date;
                                 });
                               },
-                              labelText: 'تاریخ بارگیری',
+                              labelText: 'تاریخ و ساعت بارگیری',
                               prefixIcon: Icon(Icons.calendar_today),
                               showWeekDay: true,
                               validator: (date) {
                                 if (date == null) {
-                                  return 'لطفاً تاریخ بارگیری را انتخاب کنید';
+                                  return 'لطفاً تاریخ و ساعت بارگیری را انتخاب کنید';
                                 }
                                 return null;
                               },
                             ),
                             const SizedBox(height: 16),
-                            PersianDateFormField(
-                              selectedDate: _selectedUnloadingDate ?? DateTime.now(),
-                              onDateChanged: (date) {
+                            PersianDateTimeFormField(
+                              selectedDateTime: _selectedUnloadingDate ?? DateTime.now(),
+                              onDateTimeChanged: (date) {
                                 setState(() {
                                   _selectedUnloadingDate = date;
                                 });
                               },
-                              labelText: 'تاریخ تخلیه',
+                              labelText: 'تاریخ و ساعت تخلیه',
                               prefixIcon: Icon(Icons.calendar_today),
                               showWeekDay: true,
                             ),

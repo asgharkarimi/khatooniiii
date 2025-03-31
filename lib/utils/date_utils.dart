@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:persian_datetime_picker/persian_datetime_picker.dart';
+import 'dart:ui' as ui;
 
 class AppDateUtils {
   /// Convert Gregorian DateTime to Persian formatted string
@@ -110,7 +111,7 @@ class AppDateUtils {
   }) async {
     initialDateTime ??= DateTime.now();
     
-    // Only pick the date
+    // First pick the date
     final pickedDate = await showJalaliDatePicker(
       context: context,
       initialDate: initialDateTime,
@@ -118,13 +119,61 @@ class AppDateUtils {
     
     if (pickedDate == null) return null;
     
-    // Return the date with the original time
+    // Then pick the time
+    TimeOfDay initialTime = TimeOfDay.fromDateTime(initialDateTime);
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: initialTime,
+      builder: (context, child) {
+        return Theme(
+          data: ThemeData(
+            fontFamily: 'Vazir',
+            colorScheme: ColorScheme.light(
+              primary: Theme.of(context).primaryColor,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: Colors.black87,
+            ),
+            timePickerTheme: TimePickerThemeData(
+              backgroundColor: Colors.white,
+              hourMinuteTextColor: Colors.black87,
+              dayPeriodTextColor: Colors.black87,
+              dayPeriodColor: Colors.grey.shade200,
+              dialHandColor: Theme.of(context).primaryColor,
+              dialBackgroundColor: Colors.grey.shade200,
+              hourMinuteColor: Colors.grey.shade200,
+              hourMinuteTextStyle: const TextStyle(
+                fontFamily: 'Vazir',
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+              dayPeriodTextStyle: const TextStyle(
+                fontFamily: 'Vazir',
+                fontSize: 12,
+              ),
+              helpTextStyle: const TextStyle(
+                fontFamily: 'Vazir',
+                fontSize: 12,
+              ),
+            ),
+          ),
+          child: Directionality(
+            textDirection: ui.TextDirection.rtl,
+            child: child!,
+          ),
+        );
+      },
+    );
+    
+    if (pickedTime == null) return null;
+    
+    // Return the combined date and time
     return DateTime(
       pickedDate.year,
       pickedDate.month,
       pickedDate.day,
-      initialDateTime.hour,
-      initialDateTime.minute,
+      pickedTime.hour,
+      pickedTime.minute,
     );
   }
   

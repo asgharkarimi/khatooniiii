@@ -266,4 +266,159 @@ class StyledPersianDatePicker extends StatelessWidget {
       ),
     );
   }
+}
+
+// New classes for Date and Time Picker
+
+class PersianDateTimePicker extends StatelessWidget {
+  final DateTime selectedDateTime;
+  final Function(DateTime) onDateTimeChanged;
+  final String? labelText;
+  final String? hintText;
+  final Icon? prefixIcon;
+  final Widget? suffix;
+  final bool showWeekDay;
+  final bool readOnly;
+  final InputDecoration? decoration;
+  
+  const PersianDateTimePicker({
+    super.key,
+    required this.selectedDateTime,
+    required this.onDateTimeChanged,
+    this.labelText,
+    this.hintText,
+    this.prefixIcon,
+    this.suffix,
+    this.showWeekDay = true,
+    this.readOnly = false,
+    this.decoration,
+  });
+  
+  Future<void> _selectDateTime(BuildContext context) async {
+    if (readOnly) return;
+    
+    final DateTime? picked = await date_utils.AppDateUtils.showPersianDateTimePicker(
+      context: context,
+      initialDateTime: selectedDateTime,
+    );
+    
+    if (picked != null) {
+      onDateTimeChanged(picked);
+    }
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () => _selectDateTime(context),
+      child: InputDecorator(
+        decoration: decoration ?? InputDecoration(
+          labelText: labelText,
+          hintText: hintText,
+          prefixIcon: prefixIcon ?? const Icon(Icons.event),
+          suffix: suffix,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      date_utils.AppDateUtils.formatPersianDateTime(selectedDateTime),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    if (showWeekDay) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        date_utils.AppDateUtils.getPersianWeekDay(selectedDateTime),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.arrow_drop_down,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// A form field version that integrates with Form validation
+class PersianDateTimeFormField extends FormField<DateTime> {
+  PersianDateTimeFormField({
+    Key? key,
+    required DateTime selectedDateTime,
+    required Function(DateTime) onDateTimeChanged,
+    String? labelText,
+    String? hintText,
+    Icon? prefixIcon,
+    Widget? suffix,
+    bool showWeekDay = true,
+    bool readOnly = false,
+    String? Function(DateTime?)? validator,
+    InputDecoration? decoration,
+    AutovalidateMode autovalidateMode = AutovalidateMode.disabled,
+  }) : super(
+    key: key,
+    initialValue: selectedDateTime,
+    validator: validator,
+    autovalidateMode: autovalidateMode,
+    builder: (FormFieldState<DateTime> state) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          PersianDateTimePicker(
+            selectedDateTime: state.value!,
+            onDateTimeChanged: (dateTime) {
+              state.didChange(dateTime);
+              onDateTimeChanged(dateTime);
+            },
+            labelText: labelText,
+            hintText: hintText,
+            prefixIcon: prefixIcon,
+            suffix: suffix,
+            showWeekDay: showWeekDay,
+            readOnly: readOnly,
+            decoration: decoration?.copyWith(
+              errorText: state.errorText,
+            ) ?? InputDecoration(
+              labelText: labelText,
+              hintText: hintText,
+              errorText: state.errorText,
+              prefixIcon: prefixIcon ?? const Icon(Icons.event),
+              suffix: suffix,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              filled: true,
+              fillColor: Colors.white,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+          ),
+        ],
+      );
+    },
+  );
 } 
