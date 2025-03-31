@@ -31,6 +31,7 @@ class _AddressSelectorState extends State<AddressSelector> {
   List<Address> _addresses = [];
   bool _isLoading = true;
   Address? _selectedAddress;
+  String? _selectedValue;
 
   @override
   void initState() {
@@ -43,6 +44,7 @@ class _AddressSelectorState extends State<AddressSelector> {
     
     if (widget.initialValue != null && widget.initialValue!.isNotEmpty) {
       widget.controller.text = widget.initialValue!;
+      _selectedValue = widget.initialValue;
     }
     
     // Use a delayed load to prevent UI blocking
@@ -74,6 +76,16 @@ class _AddressSelectorState extends State<AddressSelector> {
         setState(() {
           _addresses = result;
           _isLoading = false;
+          
+          // Try to find the initial address in the loaded addresses
+          if (widget.initialValue != null && widget.initialValue!.isNotEmpty) {
+            for (final address in _addresses) {
+              if (address.getFullAddress() == widget.initialValue) {
+                _selectedAddress = address;
+                break;
+              }
+            }
+          }
         });
         print('DEBUG: Loaded ${_addresses.length} addresses for ${widget.title}');
       }
@@ -96,6 +108,7 @@ class _AddressSelectorState extends State<AddressSelector> {
           onAddressSelected: (address) {
             setState(() {
               _selectedAddress = address;
+              _selectedValue = address.getFullAddress();
               widget.controller.text = address.getFullAddress();
               widget.onChanged(address.getFullAddress());
             });
@@ -106,6 +119,30 @@ class _AddressSelectorState extends State<AddressSelector> {
 
     // Reload addresses after returning from the address screen
     _loadAddresses();
+  }
+
+  void _showCustomAddressDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(widget.title),
+        content: TextField(
+          controller: widget.controller,
+          decoration: InputDecoration(
+            hintText: widget.hint,
+          ),
+          onChanged: (text) {
+            widget.onChanged(text);
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('تایید'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -151,146 +188,138 @@ class _AddressSelectorState extends State<AddressSelector> {
     );
   }
   
-  // Separate method to build the address field based on state
+  // Simplified address field that won't overflow
   Widget _buildAddressField() {
     // Just use a simple text field if there are no addresses
     if (_addresses.isEmpty) {
       return _buildTextFieldFallback();
     }
     
-    // Otherwise use the dropdown
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: DropdownButtonFormField<String>(
-        value: _getValidDropdownValue(),
-        decoration: InputDecoration(
-          hintText: widget.hint,
-          prefixIcon: Icon(widget.icon),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          border: InputBorder.none,
+    // Use a simplified custom dropdown implementation
+    return GestureDetector(
+      onTap: _showAddressOptions,
+      child: Container(
+        height: 60,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey.shade300),
         ),
-        items: [
-          // آدرس‌های ذخیره شده
-          ..._addresses.map((address) {
-            return DropdownMenuItem<String>(
-              value: address.getFullAddress(),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: [
+            Icon(widget.icon, color: Colors.grey),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                _selectedValue ?? widget.hint,
+                style: TextStyle(
+                  color: _selectedValue == null ? Colors.grey : Colors.black,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                maxLines: 1,
+              ),
+            ),
+            const Icon(Icons.arrow_drop_down),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  // Show address options in a modal bottom sheet to avoid overflow issues
+  void _showAddressOptions() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
-                  Icon(Icons.location_on, size: 16, color: Theme.of(context).colorScheme.primary),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          address.title,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          address.getFullAddress(),
-                          style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
+                  Text(
+                    widget.title,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
                 ],
               ),
-            );
-          }),
-          
-          // گزینه وارد کردن آدرس جدید
-          DropdownMenuItem<String>(
-            value: 'custom',
-            child: Row(
-              children: [
-                Icon(Icons.edit, size: 16, color: Theme.of(context).colorScheme.primary),
-                const SizedBox(width: 8),
-                const Text('وارد کردن آدرس جدید'),
-              ],
             ),
-          ),
-        ],
-        onChanged: (String? value) {
-          if (value == 'custom') {
-            // نمایش دیالوگ برای ورود آدرس جدید
-            showDialog(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: Text(widget.title),
-                content: TextField(
-                  controller: widget.controller,
-                  decoration: InputDecoration(
-                    hintText: widget.hint,
-                  ),
-                  onChanged: (text) {
-                    widget.onChanged(text);
-                  },
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('تایید'),
-                  ),
-                ],
+            const Divider(),
+            if (_addresses.isEmpty)
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text("هیچ آدرسی یافت نشد. از گزینه 'وارد کردن آدرس جدید' استفاده کنید."),
               ),
-            );
-          } else if (value != null) {
-            setState(() {
-              if (_addresses.isNotEmpty) {
-                try {
-                  _selectedAddress = _addresses.firstWhere(
-                    (address) => address.getFullAddress() == value,
-                    orElse: () => _addresses.first,
-                  );
-                } catch (e) {
-                  print('Error selecting address: $e');
-                }
-              }
-              widget.controller.text = value;
-              widget.onChanged(value);
-            });
-          }
-        },
+            ...List.generate(_addresses.length, (index) {
+              final address = _addresses[index];
+              return ListTile(
+                leading: Icon(Icons.location_on, color: Theme.of(context).colorScheme.primary),
+                title: Text(address.title),
+                subtitle: Text(
+                  address.getFullAddress(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                onTap: () {
+                  setState(() {
+                    _selectedAddress = address;
+                    _selectedValue = address.getFullAddress();
+                    widget.controller.text = address.getFullAddress();
+                    widget.onChanged(address.getFullAddress());
+                  });
+                  Navigator.pop(context);
+                },
+              );
+            }),
+            const Divider(),
+            ListTile(
+              leading: Icon(Icons.edit, color: Theme.of(context).colorScheme.primary),
+              title: const Text('وارد کردن آدرس جدید'),
+              onTap: () {
+                Navigator.pop(context);
+                _showCustomAddressDialog();
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
   
   // Fallback to a simple TextField when no addresses are available
   Widget _buildTextFieldFallback() {
-    return TextFormField(
-      controller: widget.controller,
-      decoration: InputDecoration(
-        hintText: widget.hint,
-        prefixIcon: Icon(widget.icon),
-        border: InputBorder.none,
+    return Container(
+      height: 60,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade300),
       ),
-      onChanged: (value) {
-        widget.onChanged(value);
-      },
+      child: TextFormField(
+        controller: widget.controller,
+        decoration: InputDecoration(
+          hintText: widget.hint,
+          prefixIcon: Icon(widget.icon),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        ),
+        onChanged: (value) {
+          widget.onChanged(value);
+        },
+      ),
     );
-  }
-  
-  // Method to get a valid dropdown value
-  String? _getValidDropdownValue() {
-    // Get the current value
-    String? currentValue = _selectedAddress?.getFullAddress() ?? widget.initialValue;
-    
-    // If no value, return null
-    if (currentValue == null || _addresses.isEmpty) return null;
-    
-    // If the value is 'custom', return it (it's already in the items list)
-    if (currentValue == 'custom') return currentValue;
-    
-    // Check if the value exists in the addresses list
-    bool valueExists = _addresses.any((address) => address.getFullAddress() == currentValue);
-    
-    // Return the value if it exists, otherwise null
-    return valueExists ? currentValue : null;
   }
 } 

@@ -88,222 +88,188 @@ class _CargoFormState extends State<CargoForm> {
   
   // Load data in separate async operations to prevent UI blocking
   Future<void> _loadInitialData() async {
-    try {
-      print('DEBUG: Starting initial data loading process');
-      
-      // Create a map to track loading status
-      Map<String, bool> dataLoaded = {
-        'drivers': false,
-        'vehicles': false,
-        'cargoTypes': false,
-        'freights': false,
-        'bankAccounts': false,
-        'addresses': false,
-      };
-      
-      // Use a single timer for overall timeout instead of multiple timers
-      bool hasTimedOut = false;
-      Timer? timeoutTimer = Timer(const Duration(seconds: 5), () {
-        hasTimedOut = true;
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-          
-          // Log which data items didn't load
-          String notLoaded = dataLoaded.entries
-              .where((entry) => !entry.value)
-              .map((entry) => entry.key)
-              .join(', ');
-              
-          print('DEBUG: Initial data loading timed out. Not loaded: $notLoaded');
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('بارگذاری اطلاعات با تاخیر مواجه شد. برخی از اطلاعات ممکن است در دسترس نباشند.'),
-              duration: Duration(seconds: 5),
-            ),
-          );
-        }
-      });
-      
-      // Load critical data first with individual try-catches and parallel execution
-      await Future.wait([
-        // Load drivers
-        Future(() async {
-          try {
-            _drivers = await _loadBoxValues<Driver>('drivers');
-            print('DEBUG: Loaded ${_drivers.length} drivers');
-            if (mounted && !hasTimedOut) {
-              setState(() {
-                dataLoaded['drivers'] = true;
-              });
-            }
-          } catch (e) {
-            print('ERROR loading drivers: $e');
-            _drivers = [];
-          }
-        }),
-        
-        // Load vehicles 
-        Future(() async {
-          try {
-            _vehicles = await _loadBoxValues<Vehicle>('vehicles');
-            print('DEBUG: Loaded ${_vehicles.length} vehicles');
-            if (mounted && !hasTimedOut) {
-              setState(() {
-                dataLoaded['vehicles'] = true;
-              });
-            }
-          } catch (e) {
-            print('ERROR loading vehicles: $e');
-            _vehicles = [];
-          }
-        }),
-        
-        // Load cargo types
-        Future(() async {
-          try {
-            _cargoTypes = await _loadBoxValues<CargoType>('cargoTypes');
-            print('DEBUG: Loaded ${_cargoTypes.length} cargo types');
-            if (mounted && !hasTimedOut) {
-              setState(() {
-                dataLoaded['cargoTypes'] = true;
-              });
-            }
-          } catch (e) {
-            print('ERROR loading cargo types: $e');
-            _cargoTypes = [];
-          }
-        }),
-      ]);
-      
-      // Update UI after critical data is loaded
-      if (mounted && !hasTimedOut) {
+    print('DEBUG: Beginning initial data loading');
+    if (!mounted) return;
+    
+    setState(() {
+      _isLoading = true;
+    });
+    
+    // Additional safety check - initialize all collections as empty arrays
+    _drivers = [];
+    _vehicles = [];
+    _cargoTypes = [];
+    _freightCompanies = [];
+    _bankAccounts = [];
+    _addresses = [];
+    
+    // Initialize data loading status map
+    Map<String, bool> dataLoaded = {
+      'drivers': false,
+      'vehicles': false,
+      'cargoTypes': false,
+      'freights': false,
+      'bankAccounts': false,
+      'addresses': false,
+    };
+    
+    // Set a timeout to prevent hanging
+    bool hasTimedOut = false;
+    var timeoutTimer = Timer(const Duration(seconds: 8), () {
+      print('DEBUG: _loadInitialData timed out');
+      hasTimedOut = true;
+      if (mounted) {
         setState(() {
           _isLoading = false;
         });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('بارگذاری اطلاعات با تاخیر مواجه شد. برخی اطلاعات ممکن است در دسترس نباشند.'),
+            duration: Duration(seconds: 5),
+          ),
+        );
       }
-      
-      // Load non-critical data in the background
-      Future.wait([
-        // Load freight companies
-        Future(() async {
-          try {
-            _freightCompanies = await _loadBoxValues<Freight>('freights');
-            print('DEBUG: Loaded ${_freightCompanies.length} freight companies');
-            
-            // Set preselected freight if available
-            if (widget.preSelectedFreight != null && mounted && !hasTimedOut) {
-              setState(() {
-                _selectedFreight = widget.preSelectedFreight;
-                print('DEBUG: Preselected freight set: ${_selectedFreight?.name}');
-              });
-            }
-            
-            if (mounted) {
-              setState(() {
-                dataLoaded['freights'] = true;
-              });
-            }
-          } catch (e) {
-            print('ERROR loading freight companies: $e');
-            _freightCompanies = [];
-          }
-        }),
-        
-        // Load bank accounts
-        Future(() async {
-          try {
-            final accounts = await _loadBoxValues<BankAccount>('bankAccounts');
-            _bankAccounts = _removeDuplicateBankAccounts(accounts);
-            print('DEBUG: Loaded ${_bankAccounts.length} bank accounts');
-            
-            if (mounted) {
-              setState(() {
-                dataLoaded['bankAccounts'] = true;
-              });
-            }
-          } catch (e) {
-            print('ERROR loading bank accounts: $e');
-            _bankAccounts = [];
-          }
-        }),
-        
-        // Load addresses
-        Future(() async {
-          try {
-            final addresses = await _loadBoxValues<Address>('addresses');
-            _addresses = _removeDuplicateAddresses(addresses);
-            print('DEBUG: Loaded ${_addresses.length} addresses');
-            
-            if (mounted) {
-              setState(() {
-                dataLoaded['addresses'] = true;
-              });
-            }
-          } catch (e) {
-            print('ERROR loading addresses: $e');
-            _addresses = [];
-          }
-        }),
-      ]);
-      
-      // Set cargo data if editing
-      if (widget.cargo != null && mounted) {
-        print('DEBUG: Loading existing cargo data');
-        try {
-          _originController.text = widget.cargo!.origin;
-          _destinationController.text = widget.cargo!.destination;
-          _weightController.text = widget.cargo!.weight.toString();
-          _pricePerTonController.text = widget.cargo!.pricePerTon.toString();
-          _transportCostPerTonController.text = widget.cargo!.transportCostPerTon.toString();
-          _waybillAmountController.text = widget.cargo!.waybillAmount?.toString() ?? '0';
-          _bankAccountController.text = widget.cargo!.bankAccount ?? '';
-          _bankNameController.text = widget.cargo!.bankName ?? '';
-          _accountOwnerNameController.text = widget.cargo!.accountOwnerName ?? '';
-          _loadingAddressController.text = widget.cargo!.loadingAddress ?? '';
-          _unloadingAddressController.text = widget.cargo!.unloadingAddress ?? '';
-          _recipientContactNumberController.text = widget.cargo!.recipientContactNumber ?? '';
-          _selectedVehicle = widget.cargo!.vehicle;
-          _selectedDriver = widget.cargo!.driver;
-          _selectedCargoType = widget.cargo!.cargoType;
-          _selectedDate = widget.cargo!.date;
-          _selectedUnloadingDate = widget.cargo!.unloadingDate;
-          _savedWaybillImagePath = widget.cargo!.waybillImagePath;
-        } catch (e) {
-          print('ERROR loading existing cargo data: $e');
-        }
-        
-        // This needs to run after bank accounts are loaded
-        Future.delayed(const Duration(milliseconds: 300), () {
-          if (mounted) {
-            _setBankAccountFromExistingCargo();
-          }
-        });
-      }
-      
-      // Print debug info after initial load
-      Future.delayed(const Duration(milliseconds: 500), () {
+    });
+    
+    // Load each type of data in isolated try-catch blocks
+    try {
+      // Load drivers (critical data)
+      await _loadDataIsolated<Driver>('drivers', (items) {
+        _drivers = items;
         if (mounted) {
-          _printDropdownsDebugInfo();
-          _checkEmptyDropdowns();
+          setState(() {
+            dataLoaded['drivers'] = true;
+          });
         }
       });
       
+      // Load vehicles (critical data)
+      await _loadDataIsolated<Vehicle>('vehicles', (items) {
+        _vehicles = items;
+        if (mounted) {
+          setState(() {
+            dataLoaded['vehicles'] = true;
+          });
+        }
+      });
+      
+      // Load cargo types (critical data)
+      await _loadDataIsolated<CargoType>('cargoTypes', (items) {
+        _cargoTypes = items;
+        if (mounted) {
+          setState(() {
+            dataLoaded['cargoTypes'] = true;
+          });
+        }
+      });
+      
+      // Load freight companies (non-critical data)
+      await _loadDataIsolated<Freight>('freights', (items) {
+        _freightCompanies = _removeDuplicateFreights(items);
+        if (mounted) {
+          setState(() {
+            dataLoaded['freights'] = true;
+          });
+        }
+      });
+      
+      // Load bank accounts (non-critical data)
+      await _loadDataIsolated<BankAccount>('bankAccounts', (items) {
+        _bankAccounts = _removeDuplicateBankAccounts(items);
+        if (mounted) {
+          setState(() {
+            dataLoaded['bankAccounts'] = true;
+          });
+        }
+      });
+      
+      // Load addresses (non-critical data)
+      await _loadDataIsolated<Address>('addresses', (items) {
+        _addresses = _removeDuplicateAddresses(items);
+        if (mounted) {
+          setState(() {
+            dataLoaded['addresses'] = true;
+          });
+        }
+      });
+      
+      // Set cargo data if editing
+      if (widget.cargo != null && mounted) {
+        await _loadExistingCargoData();
+      }
+      
+      // Print debug info after initial load
+      if (mounted) {
+        Future.delayed(const Duration(milliseconds: 300), () {
+          _printDropdownsDebugInfo();
+          _checkEmptyDropdowns();
+        });
+      }
+      
       // Cancel the timeout timer if everything loaded properly
-      if (!hasTimedOut && timeoutTimer != null && timeoutTimer.isActive) {
+      if (!hasTimedOut && timeoutTimer.isActive) {
         timeoutTimer.cancel();
       }
       
       print('DEBUG: Initial data loading complete');
     } catch (e) {
       print('ERROR in _loadInitialData: $e');
+    } finally {
+      // Always ensure loading state is false to prevent UI hanging
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
       }
     }
+  }
+  
+  // Isolated data loading function
+  Future<void> _loadDataIsolated<T>(String boxName, Function(List<T>) onSuccess) async {
+    print('DEBUG: Loading $boxName data');
+    try {
+      final items = await _loadBoxValues<T>(boxName);
+      print('DEBUG: Loaded ${items.length} items from $boxName');
+      onSuccess(items);
+    } catch (e) {
+      print('ERROR loading $boxName: $e');
+      // Return empty list for any errors
+      onSuccess(<T>[]);
+    }
+  }
+  
+  // Load existing cargo data with better error handling
+  Future<void> _loadExistingCargoData() async {
+    print('DEBUG: Loading existing cargo data');
+    try {
+      _originController.text = widget.cargo!.origin;
+      _destinationController.text = widget.cargo!.destination;
+      _weightController.text = widget.cargo!.weight.toString();
+      _pricePerTonController.text = widget.cargo!.pricePerTon.toString();
+      _transportCostPerTonController.text = widget.cargo!.transportCostPerTon.toString();
+      _waybillAmountController.text = widget.cargo!.waybillAmount?.toString() ?? '0';
+      _bankAccountController.text = widget.cargo!.bankAccount ?? '';
+      _bankNameController.text = widget.cargo!.bankName ?? '';
+      _accountOwnerNameController.text = widget.cargo!.accountOwnerName ?? '';
+      _loadingAddressController.text = widget.cargo!.loadingAddress ?? '';
+      _unloadingAddressController.text = widget.cargo!.unloadingAddress ?? '';
+      _recipientContactNumberController.text = widget.cargo!.recipientContactNumber ?? '';
+      _selectedVehicle = widget.cargo!.vehicle;
+      _selectedDriver = widget.cargo!.driver;
+      _selectedCargoType = widget.cargo!.cargoType;
+      _selectedDate = widget.cargo!.date;
+      _selectedUnloadingDate = widget.cargo!.unloadingDate;
+      _savedWaybillImagePath = widget.cargo!.waybillImagePath;
+    } catch (e) {
+      print('ERROR loading existing cargo data: $e');
+    }
+    
+    // This needs to run after bank accounts are loaded
+    await Future.delayed(const Duration(milliseconds: 200), () {
+      if (mounted) {
+        _setBankAccountFromExistingCargo();
+      }
+    });
   }
   
   // Helper method to load Hive box values with timeout protection
@@ -1732,5 +1698,19 @@ class _CargoFormState extends State<CargoForm> {
     }
     
     print('=========================================================\n');
+  }
+
+  List<Freight> _removeDuplicateFreights(List<Freight> freights) {
+    print('DEBUG: Removing duplicate freight companies from ${freights.length} items');
+    Map<String, Freight> uniqueFreights = {};
+    
+    for (var freight in freights) {
+      // Use the key as a unique identifier
+      String uniqueKey = freight.key.toString();
+      uniqueFreights[uniqueKey] = freight;
+    }
+    
+    print('DEBUG: After removing duplicates: ${uniqueFreights.length} unique freight companies');
+    return uniqueFreights.values.toList();
   }
 } 

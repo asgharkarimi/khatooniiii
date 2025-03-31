@@ -183,12 +183,28 @@ class HomeScreen extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.only(bottom: 12),
-          child: Text(
-            'آمار کلی',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.primary,
-            ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.insert_chart_outlined_rounded,
+                color: Theme.of(context).colorScheme.primary,
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'آمار کلی',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              const Spacer(),
+              Icon(
+                Icons.touch_app,
+                color: Colors.grey[400],
+                size: 14,
+              ),
+            ],
           ),
         ),
         Row(
@@ -243,49 +259,104 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildStatCard(BuildContext context, IconData icon, String count, String title, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: () {
+          // Add a simple scale animation when tapped
+          ScaffoldMessenger.of(context).clearSnackBars();
+          
+          // Navigate to the corresponding screen based on the title
+          switch (title) {
+            case 'سرویس‌ها':
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CargoList()),
+              );
+              break;
+            case 'رانندگان':
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const DriverList()),
+              );
+              break;
+            case 'پرداخت‌ها':
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const PaymentList()),
+              );
+              break;
+            case 'هزینه‌ها':
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ExpenseList()),
+              );
+              break;
+          }
+        },
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
+        splashColor: color.withOpacity(0.1),
+        highlightColor: color.withOpacity(0.05),
+        child: Tooltip(
+          message: _getTooltipMessage(title),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              shape: BoxShape.circle,
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+              border: Border.all(color: Colors.grey.shade100),
             ),
-            child: Icon(
-              icon,
-              color: color,
-              size: 24,
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.08),
+                    shape: BoxShape.circle,
+                    boxShadow: null,
+                  ),
+                  child: Icon(
+                    icon,
+                    color: color,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  count,
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                // Remove the explicit button and just add a small indicator icon
+                const SizedBox(height: 8),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 12,
+                  color: color,
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 12),
-          Text(
-            count,
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.grey[600],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -575,13 +646,14 @@ class HomeScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withOpacity(0.08),
                 shape: BoxShape.circle,
+                boxShadow: null,
               ),
               child: Icon(
                 menuItem.icon,
                 color: color,
-                size: 22,
+                size: 24,
               ),
             ),
             const SizedBox(height: 8),
@@ -795,6 +867,21 @@ class HomeScreen extends StatelessWidget {
         duration: const Duration(seconds: 2),
       ),
     );
+  }
+
+  String _getTooltipMessage(String title) {
+    switch (title) {
+      case 'سرویس‌ها':
+        return 'لیست سرویس‌ها';
+      case 'رانندگان':
+        return 'لیست رانندگان';
+      case 'پرداخت‌ها':
+        return 'لیست پرداخت‌ها';
+      case 'هزینه‌ها':
+        return 'لیست هزینه‌ها';
+      default:
+        return '';
+    }
   }
 }
 
